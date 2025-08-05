@@ -9,10 +9,6 @@ using Kompas6Constants;
 
 namespace Kompas
 {
-    [ComVisible(true)] // Делаем класс видимым для COM
-    [Guid("F1234567-89AB-4CDE-B012-3456789ABCDF")] // Уникальный GUID
-    [ProgId("HeagBoKaT.KompasCOM")] // Простой ProgID
-
     class Program
     {
         static void Main()
@@ -22,12 +18,12 @@ namespace Kompas
             {
                 Console.WriteLine($"Тип размера: {dim.name}|{dim.vault}|Ручной:{dim.nominal}");
             }
+            Console.ReadKey();
         }
 
         static List<(string type, string name, float vault, bool nominal)> Check()
         {  
             List<(string type, string name, float vault, bool nominal)> listDimension = new List<(string type, string name, float vault, bool nominal)>();
-            // List<(string type, string name, float vault, bool nominal)> listDimension = new List<(string type, string name, float vault, bool nominal)>();
             IApplication app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
             IKompasDocument2D kompasDocument2D = (IKompasDocument2D)app.ActiveDocument;
             Views views = kompasDocument2D.ViewsAndLayersManager.Views;
@@ -35,12 +31,12 @@ namespace Kompas
             for (int i = 0; i < views.Count; i++)
             {
                 IView currentView = views.View[i];
-                ISymbols2DContainer symbols2DContainer = currentView as ISymbols2DContainer;
+                ISymbols2DContainer symbols2DContainer = (ISymbols2DContainer)currentView;
                 for (int j = 0; j < symbols2DContainer.LineDimensions.Count; j++)
                 {
                     LineDimension lineDimension = symbols2DContainer.LineDimensions.LineDimension[j];
-                    IDimensionText idimensionText = lineDimension as IDimensionText;
-                    if (!idimensionText.AutoNominalValue)
+                    IDimensionText idimensionText = (IDimensionText)lineDimension;
+                    if (idimensionText != null && !idimensionText.AutoNominalValue)
                     {
                         float.TryParse(idimensionText.NominalText.Str, out float nominal);
                         listDimension.Add(
@@ -53,8 +49,8 @@ namespace Kompas
                 for (int j = 0; j < symbols2DContainer.AngleDimensions.Count; j++)
                 {
                     IAngleDimension angleDimension = symbols2DContainer.AngleDimensions.AngleDimension[j];
-                    IDimensionText angleDimensionText = angleDimension as IDimensionText;
-                    if (!angleDimensionText.AutoNominalValue)
+                    IDimensionText angleDimensionText = (IDimensionText)angleDimension;
+                    if (angleDimensionText != null && !angleDimensionText.AutoNominalValue)
                     {
                         string degree = angleDimensionText.NominalText.Str.Split("@1~")[0];
                         int degreeInt = int.Parse(degree);
