@@ -11,6 +11,12 @@
       <Reference Include="HeagBoKaT">
         <HintPath>..\dll\HeagBoKaT.dll</HintPath>
       </Reference>
+      <Reference Include="Kompas6Constants">
+        <HintPath>..\dll\Kompas6Constants.dll</HintPath>
+      </Reference>
+      <Reference Include="Kompas6Constants3D">
+        <HintPath>..\dll\Kompas6Constants3D.dll</HintPath>
+      </Reference>
       <Reference Include="KompasAPI7">
         <HintPath>..\dll\KompasAPI7.dll</HintPath>
       </Reference>
