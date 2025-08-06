@@ -67,6 +67,7 @@ namespace Kompas
 
 
             }
+            app.HideMessage = ksHideMessageEnum.ksShowMessage;
             return listDimension;
         }
         
