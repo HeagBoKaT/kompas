@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "LZ3G5PvGtgI=",
+  "dgSpecHash": "05cgNULWoS8=",
   "success": true,
-  "projectFilePath": "D:\\Programming\\CSharp\\GUIKompas\\GUI\\GUI.csproj",
+  "projectFilePath": "C:\\Users\\HeagBoKaT\\Desktop\\kompas\\GUI\\GUI.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\HeagBoKaT\\.nuget\\packages\\avalonia\\11.3.6\\avalonia.11.3.6.nupkg.sha512",
     "C:\\Users\\HeagBoKaT\\.nuget\\packages\\avalonia.angle.windows.natives\\2.1.25547.20250602\\avalonia.angle.windows.natives.2.1.25547.20250602.nupkg.sha512",

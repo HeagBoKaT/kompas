@@ -14,6 +14,10 @@
           "Avalonia.Fonts.Inter": "11.3.6",
           "Avalonia.Themes.Fluent": "11.3.6",
           "HeagBoKaT": "1.0.0.0",
+          "KAPITypes": "1.0.0.0",
+          "Kompas6API2D5COM": "1.0.0.0",
+          "Kompas6API3D5COM": "1.0.0.0",
+          "Kompas6API5": "1.0.0.0",
           "Kompas6Constants": "1.0.0.0",
           "Kompas6Constants3D": "1.0.0.0",
           "KompasAPI7": "1.0.0.0"
@@ -430,6 +434,38 @@
           }
         }
       },
+      "KAPITypes/1.0.0.0": {
+        "runtime": {
+          "KAPITypes.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "Kompas6API2D5COM/1.0.0.0": {
+        "runtime": {
+          "Kompas6API2D5COM.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "Kompas6API3D5COM/1.0.0.0": {
+        "runtime": {
+          "Kompas6API3D5COM.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "Kompas6API5/1.0.0.0": {
+        "runtime": {
+          "Kompas6API5.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
       "Kompas6Constants/1.0.0.0": {
         "runtime": {
           "Kompas6Constants.dll": {
@@ -659,6 +695,26 @@
       "hashPath": "tmds.dbus.protocol.0.21.2.nupkg.sha512"
     },
     "HeagBoKaT/1.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "KAPITypes/1.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Kompas6API2D5COM/1.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Kompas6API3D5COM/1.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Kompas6API5/1.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

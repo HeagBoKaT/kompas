@@ -36,21 +36,21 @@ public partial class MainWindow : Window
 
     }
 
-    void Test_button_click(object? sender, RoutedEventArgs e)
-    {
-        IApplication? app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
-        IKompasDocument kompasDocument = app.ActiveDocument;
-        DocumentFrames frames = kompasDocument.DocumentFrames;
-        Debug.WriteLine(frames[0].Caption);
-        var kompas = (KompasObject)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.5");
-        var a = (ksSpcDocument)kompas.SpcActiveDocument();
-        Debug.WriteLine(a.ksGetSpcDocumentPagesCount());
+    // void Test_button_click(object? sender, RoutedEventArgs e)
+    // {
+    //     IApplication? app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
+    //     IKompasDocument kompasDocument = app.ActiveDocument;
+    //     DocumentFrames frames = kompasDocument.DocumentFrames;
+    //     Debug.WriteLine(frames[0].Caption);
+    //     var kompas = (KompasObject)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.5");
+    //     var a = (ksSpcDocument)kompas.SpcActiveDocument();
+    //     Debug.WriteLine(a.ksGetSpcDocumentPagesCount());
 
 
-        // ksObjectSpecificationDocument
-        // ksObjectDrawingDocument
+    //     // ksObjectSpecificationDocument
+    //     // ksObjectDrawingDocument
 
-    }
+    // }
 
     async void Button_Click(object? sender, RoutedEventArgs e)
     {
@@ -186,17 +186,22 @@ public partial class MainWindow : Window
     public void Set_text_stamp(IApplication app, IKompasDocument kompasDocument, string[] case_text)
     {
         var format = kompasDocument.LayoutSheets[0];
-        for (int i = 0; i < 3; i++)
+        if (case_text[0] == null && case_text[1] == null && case_text[2] == null) return;
+        else
         {
+            for (int i = 0; i < 3; i++)
+            {
+                if (case_text[i] == null) continue;
+                var text = format.Stamp.Text[id_stamp[i]];
+                text.Clear();
+                var textLine = text.Add();
+                var textItem = textLine.Add();
+                textItem.Str = case_text[i];
 
-            var text = format.Stamp.Text[id_stamp[i]];
-            text.Clear();
-            var textLine = text.Add();
-            var textItem = textLine.Add();
-            textItem.Str = case_text[i];
+            }
+            format.Stamp.Update();
 
         }
-        format.Stamp.Update();
         return;
     }
     public void Set_sign(IApplication app, IKompasDocument2D kompasDocument2D)

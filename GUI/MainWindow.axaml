@@ -86,7 +86,7 @@
             <CheckBox HorizontalAlignment="Center" Grid.Row="6" x:Name="saved_pdf" Content="Сохранить pdf" IsChecked="True" Margin="10"></CheckBox>
             <Button HorizontalAlignment="Center" Grid.Row="7" x:Name="button_run" Content="Холсим ❤" Click="Button_Click" Margin="10" Background="#33acca"></Button>
             <ProgressBar Grid.Row="8" x:Name="progressBar" Minimum="0" Maximum="100" Height="8" Foreground="#33acca"/>
-            <Button Grid.Row="9" x:Name="button_test" Content="test" Click="Test_button_click"/>
+            <!-- <Button Grid.Row="9" x:Name="button_test" Content="test" Click="Test_button_click"/> -->
 
     </Grid>
 </StackPanel>

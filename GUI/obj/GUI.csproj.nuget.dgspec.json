@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Programming\\CSharp\\GUIKompas\\GUI\\GUI.csproj": {}
+    "C:\\Users\\HeagBoKaT\\Desktop\\kompas\\GUI\\GUI.csproj": {}
   },
   "projects": {
-    "D:\\Programming\\CSharp\\GUIKompas\\GUI\\GUI.csproj": {
+    "C:\\Users\\HeagBoKaT\\Desktop\\kompas\\GUI\\GUI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Programming\\CSharp\\GUIKompas\\GUI\\GUI.csproj",
+        "projectUniqueName": "C:\\Users\\HeagBoKaT\\Desktop\\kompas\\GUI\\GUI.csproj",
         "projectName": "GUI",
-        "projectPath": "D:\\Programming\\CSharp\\GUIKompas\\GUI\\GUI.csproj",
+        "projectPath": "C:\\Users\\HeagBoKaT\\Desktop\\kompas\\GUI\\GUI.csproj",
         "packagesPath": "C:\\Users\\HeagBoKaT\\.nuget\\packages\\",
-        "outputPath": "D:\\Programming\\CSharp\\GUIKompas\\GUI\\obj\\",
+        "outputPath": "C:\\Users\\HeagBoKaT\\Desktop\\kompas\\GUI\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -26,7 +26,6 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -60,6 +59,8 @@
               "version": "[11.3.6, )"
             },
             "Avalonia.Diagnostics": {
+              "include": "None",
+              "suppressParent": "All",
               "target": "Package",
               "version": "[11.3.6, )"
             },
