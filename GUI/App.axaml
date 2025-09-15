@@ -1,0 +1,38 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="GUI.App"
+             RequestedThemeVariant="Default">
+             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.Styles>
+        <FluentTheme />
+        <Style Selector="CheckBox:unchecked /template/ Border#NormalRectangle">
+	        <Setter Property="BorderBrush" Value="#33acca"/>
+        </Style>
+        <Style Selector="CheckBox:checked /template/ Path#CheckGlyph">
+            <Setter Property="Fill" Value="White"/>
+            <Setter Property="Data" Value="{StaticResource CheckMarkPathData}" />
+        </Style>
+        <Style Selector="CheckBox:checked /template/ Border#NormalRectangle">
+            <Setter Property="BorderBrush" Value="White" />
+            <Setter Property="Background" Value="#33acca" />
+        </Style>
+        <Style Selector="ComboBox:pointerover /template/ Border#Background">
+            <Setter Property="Background" Value="#33acca" />
+        </Style>
+        <Style Selector="ComboBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="#33acca" />
+        </Style>
+        <Style Selector="RadioButton:pointerover /template/ Ellipse#OuterEllipse">
+            <Setter Property="Fill" Value="#33acca"/>
+        </Style>
+        <Style Selector="RadioButton:unchecked /template/ Ellipse#OuterEllipse">
+            <Setter Property="Stroke" Value="#33acca" />
+        </Style>
+        <Style Selector="RadioButton:checked /template/ Ellipse#CheckOuterEllipse">
+            <Setter Property="Opacity" Value="1" />
+            <Setter Property="Stroke" Value="White" />
+            <Setter Property="Fill" Value="#33acca" />
+        </Style>
+    </Application.Styles>
+</Application>
