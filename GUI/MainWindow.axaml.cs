@@ -86,6 +86,10 @@ public partial class MainWindow : Window
             {
                 for (int i = 0; i < total; i++)
                 {
+                    if (!needClose)
+                    {
+                        app.Documents[i].Active = true;
+                    }
                     IKompasDocument kompasDocument = app.ActiveDocument;
                     if (kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentPart || kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentAssembly || kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentFragment)
                     {
@@ -126,6 +130,7 @@ public partial class MainWindow : Window
                     if (needClose == true)
                     {
                         kompasDocument.Close((DocumentCloseOptions)1);
+                        continue;
                     }
                 }
 
