@@ -43,15 +43,6 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="Разраб" />
                 <ComboBox Grid.Column="1" x:Name="name1" Width="120" CornerRadius="6">
-                    <ComboBoxItem></ComboBoxItem>
-                    <ComboBoxItem>Жуков</ComboBoxItem>
-                    <ComboBoxItem>Фадеев</ComboBoxItem>
-                    <ComboBoxItem>Пащенко</ComboBoxItem>
-                    <ComboBoxItem>Харланов</ComboBoxItem>
-                    <ComboBoxItem>Шурпач</ComboBoxItem>
-                    <ComboBoxItem>Панфилов</ComboBoxItem>
-                    <ComboBoxItem>Сапожников</ComboBoxItem>
-                    <ComboBoxItem>Крюков</ComboBoxItem>
                     </ComboBox>
                 </Grid>
                     <Grid Grid.Row="1" Margin="8">
@@ -61,15 +52,6 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Проверил" />
                     <ComboBox Grid.Column="1" x:Name="name2" Width="120" CornerRadius="6">
-                        <ComboBoxItem></ComboBoxItem>
-                        <ComboBoxItem>Жуков</ComboBoxItem>
-                        <ComboBoxItem>Фадеев</ComboBoxItem>
-                        <ComboBoxItem>Пащенко</ComboBoxItem>
-                        <ComboBoxItem>Харланов</ComboBoxItem>
-                        <ComboBoxItem>Шурпач</ComboBoxItem>
-                        <ComboBoxItem>Панфилов</ComboBoxItem>
-                        <ComboBoxItem>Сапожников</ComboBoxItem>
-                        <ComboBoxItem>Крюков</ComboBoxItem>
                         </ComboBox>
                 </Grid>
                     <Grid Grid.Row="2" Margin="8">
@@ -79,15 +61,6 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Н. контр"/>
                     <ComboBox Grid.Column="1" x:Name="name3" Width="120" CornerRadius="6">
-                        <ComboBoxItem></ComboBoxItem>
-                        <ComboBoxItem>Жуков</ComboBoxItem>
-                        <ComboBoxItem>Фадеев</ComboBoxItem>
-                        <ComboBoxItem>Пащенко</ComboBoxItem>
-                        <ComboBoxItem>Харланов</ComboBoxItem>
-                        <ComboBoxItem>Шурпач</ComboBoxItem>
-                        <ComboBoxItem>Панфилов</ComboBoxItem>
-                        <ComboBoxItem>Сапожников</ComboBoxItem>
-                        <ComboBoxItem>Крюков</ComboBoxItem>
                         </ComboBox>
                 </Grid>
             </Grid>    
@@ -103,8 +76,8 @@
                             <ColumnDefinition Width="1*"/>
                             <ColumnDefinition Width="1*"/>
                         </Grid.ColumnDefinitions>
-                            <CheckBox x:Name="add_stamp" Content="Добавить штамп" Margin="2,2,32,2" Width="160" Grid.Column="0"/>
-                            <CheckBox x:Name="auto_place" Content="Beta" Margin="2" Grid.Column="1"/>
+                            <CheckBox x:Name="add_stamp" Content="Добавить штамп" Margin="2,2,32,2" Width="160" Grid.Column="0" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"/>
+                            <CheckBox x:Name="auto_place" Content="Beta" Margin="2" Grid.Column="1" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"/>
                         </Grid>
                     <Grid  Grid.Row="1" HorizontalAlignment="Center">
                         <Grid.ColumnDefinitions>
@@ -112,22 +85,21 @@
                             <ColumnDefinition Width="1*"/>
                             <ColumnDefinition Width="1*"/>
                         </Grid.ColumnDefinitions>
-                        <RadioButton Margin="8" GroupName="Target" Tag="VOL" Content="VOL" IsChecked="True" Checked="RadioButton_Checked" Grid.Column="0" />
-                        <RadioButton Margin="8" GroupName="Target" Tag="SHU" Content="SHU" Checked="RadioButton_Checked" Grid.Column="1" />
-                        <RadioButton Margin="8" GroupName="Target" Tag="QAR" Content="QAR" Checked="RadioButton_Checked" Grid.Column="2" />
-                        
+                        <RadioButton Margin="8" x:Name="rbVol" GroupName="Target" Tag="VOL" Content="VOL" Checked="RadioButton_Checked" Grid.Column="0"/>
+                        <RadioButton Margin="8" x:Name="rbShu" GroupName="Target" Tag="SHU" Content="SHU" Checked="RadioButton_Checked" Grid.Column="1"/>
+                        <RadioButton Margin="8" x:Name="rbQar" GroupName="Target" Tag="QAR" Content="QAR" Checked="RadioButton_Checked" Grid.Column="2"/>
                         </Grid>
                     </Grid>
                 </Border>
             
-            <CheckBox HorizontalAlignment="Center" Grid.Row="2" x:Name="sign_stamp" Content="Подписать" IsChecked="False" Margin="10"></CheckBox>
+            <CheckBox HorizontalAlignment="Center" Grid.Row="2" x:Name="sign_stamp" Content="Подписать" IsChecked="False" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
             <Grid Grid.Row="3">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
-                    <CheckBox HorizontalAlignment="Center" Grid.Column="0" x:Name="saved_pdf" Content="Сохранить pdf" IsChecked="True" Margin="10"></CheckBox>
-                    <CheckBox HorizontalAlignment="Center" Grid.Column="1" x:Name="close_doc" Content="Закрывать документ" Margin="10"></CheckBox>
+                    <CheckBox HorizontalAlignment="Center" Grid.Column="0" x:Name="saved_pdf" Content="Сохранить pdf" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
+                    <CheckBox HorizontalAlignment="Center" Grid.Column="1" x:Name="close_doc" Content="Закрывать документ" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
             </Grid>
             <Button HorizontalAlignment="Center" Grid.Row="5" x:Name="button_run" Content="Холсим ❤" Click="Button_Click" Margin="10" Background="#33acca" CornerRadius="12"></Button>
             <ProgressBar Grid.Row="6" x:Name="progressBar" Minimum="0" Maximum="100" Height="8" Foreground="#33acca"/>

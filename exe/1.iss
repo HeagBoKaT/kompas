@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "KompasTweaker"
-#define MyAppVersion "1.0"
+#define MyAppVersion "1.0.6"
 #define MyAppPublisher "HeagBoKaT"
 #define MyAppURL "https://www.heagbokat.ru/"
 #define MyAppExeName "GUI.exe"
@@ -46,6 +46,7 @@ Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+
 
 [Files]
 Source: "D:\Programming\CSharp\kompas\GUI\bin\Release\net9.0\win-x64\publish\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion

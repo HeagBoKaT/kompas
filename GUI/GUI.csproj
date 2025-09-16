@@ -21,6 +21,10 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <AvaloniaResource Include="Assets\**" />
+    <Content Include="Assets\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
     <Reference Include="HeagBoKaT">
         <HintPath>\DLL\HeagBoKaT.dll</HintPath>
       </Reference>
