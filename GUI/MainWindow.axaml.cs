@@ -60,7 +60,7 @@ public partial class MainWindow : Window
         var needSign = sign_stamp.IsChecked == true;
         var needPdf = saved_pdf.IsChecked == true;
         var auto_paced_stamp = auto_place.IsChecked == true;
-        var needClose = close_doc.IsChecked = true;
+        var needClose = close_doc.IsChecked == true;
 
         bool sign_check = true;
         IApplication? app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
