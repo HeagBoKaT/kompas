@@ -7,10 +7,10 @@
         x:Class="GUI.MainWindow"
         Title="Люблю ХОЛСИМ"
         Width="280"
-        Height="420"
-        MinHeight="420"
+        Height="430"
+        MinHeight="430"
         MinWidth="280"
-        MaxHeight="420"
+        MaxHeight="430"
         MaxWidth="280"
         >
 
@@ -77,7 +77,7 @@
                             <ColumnDefinition Width="1*"/>
                         </Grid.ColumnDefinitions>
                             <CheckBox x:Name="add_stamp" Content="Добавить штамп" Margin="2,2,32,2" Width="160" Grid.Column="0" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"/>
-                            <CheckBox x:Name="auto_place" Content="Beta" Margin="2" Grid.Column="1" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"/>
+                            <CheckBox x:Name="auto_place" Content="Auto" Margin="2" Grid.Column="1" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"/>
                         </Grid>
                     <Grid  Grid.Row="1" HorizontalAlignment="Center">
                         <Grid.ColumnDefinitions>

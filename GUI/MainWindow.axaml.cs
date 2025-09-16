@@ -10,6 +10,7 @@ using Avalonia.Threading;
 using Kompas6Constants;
 using KompasAPI7;
 using System.Text.Json;
+using System.Linq;
 
 namespace GUI;
 
@@ -18,6 +19,9 @@ public partial class MainWindow : Window
     List<int> id_stamp = new List<int>() { 110, 111, 114 };
     private string _target = "VOL";
     private bool _isLoading = false;
+    private Dictionary<string, List<string>> _stamps = new();
+    private bool _badDocument = false;
+    private int _badCount = 0;
     public MainWindow()
     {
 
@@ -49,7 +53,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex);
+            Console.WriteLine(ex);
         }
         finally
         {
@@ -78,7 +82,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex);
+            Console.WriteLine(ex);
         }
 
     }
@@ -98,10 +102,14 @@ public partial class MainWindow : Window
                     name3.Items.Add(new ComboBoxItem { Content = n });
                 }
             }
+            if (config?.stamps != null)
+            {
+                _stamps = config.stamps;
+            }
         }
         catch (Exception ex)
         {
-            Debug.WriteLine(ex.Message);
+            Console.WriteLine(ex.Message);
         }
     }
     private void OnAnyToggleChanged(object? sender, RoutedEventArgs e)
@@ -134,14 +142,76 @@ public partial class MainWindow : Window
     private class ConfigName
     {
         public List<string>? names { get; set; }
+        public Dictionary<string, List<string>>? stamps { get; set; }
     }
 
     // void Test_button_click(object? sender, RoutedEventArgs e)
     // {
-    //     var path = Path.Combine(AppContext.BaseDirectory, "config.json");
-    //     // var path = "D:\\Programming\\CSharp\\kompas\\GUI\\config.json";
-    //     Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
+    //     IApplication app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
+    //     IKompasDocument kompasDocument = app.ActiveDocument;
+    //     IKompasDocument2D kompasDocument2D = (IKompasDocument2D)kompasDocument;
+    //     IKompasDocument2D1 document2D1 = (IKompasDocument2D1)kompasDocument2D;
+    //     double x = kompasDocument2D.LayoutSheets[0].Format.FormatWidth;
+    //     IDrawingDocument drawing = (IDrawingDocument)kompasDocument2D;
+    //     TechnicalDemand technicalDemand = drawing.TechnicalDemand;
+    //     IText textTechnical = technicalDemand.Text;
+    //     if (technicalDemand != null)
+    //     {
+    //         try
+    //         {
+    //             double[] technicalPos = (double[])technicalDemand.BlocksGabarits;
+    //             for (int i = 0; i < technicalPos.Length; i++)
+    //             {
+    //                 Console.WriteLine(technicalPos[i]);
 
+    //             }
+    //             Console.WriteLine(x - 190);
+    //             if (technicalPos[0] >= x - 190)
+    //             {
+    //                 Console.WriteLine("TT:Top");
+    //                 Console.WriteLine(textTechnical.Count);
+    //                 var collision1 = document2D1.FindObject(technicalPos[2], technicalPos[1] + textTechnical.Count * 7, 20, null);
+    //                 var collision2 = document2D1.FindObject(x - 90, technicalPos[1] + textTechnical.Count * 7, 20, null);
+    //                 var collision3 = document2D1.FindObject(x - 180, technicalPos[1] + textTechnical.Count * 7, 20, null);
+    //                 if (collision1 == null && collision2 == null && collision3 == null)
+    //                 {
+    //                     Console.WriteLine("TT:Move");
+    //                     technicalDemand.BlocksGabarits = new double[4] { technicalPos[0], technicalPos[1] + 15, technicalPos[2], technicalPos[1] + textTechnical.Count * 7 + 16 };
+    //                     technicalDemand.Update();
+    //                 }
+    //                 else
+    //                 {
+    //                     collision1 = document2D1.FindObject(185 + 5 + 120, 25, 20, null);
+    //                     collision2 = document2D1.FindObject(185 + 5 + 60, 25, 20, null);
+    //                     collision3 = document2D1.FindObject(185 + 5 + 5, 25, 20, null);
+    //                     if (collision1 == null && collision2 == null && collision3 == null)
+    //                     {
+    //                         Console.WriteLine("Stampik left");
+    //                     }
+    //                 }
+    //             }
+    //             else
+    //             {
+    //                 Console.WriteLine("TT:custom");
+    //                 var collision1 = document2D1.FindObject(x - 185, 85, 20, null);
+    //                 var collision2 = document2D1.FindObject(x - 90, 85, 20, null);
+    //                 var collision3 = document2D1.FindObject(x - 10, 85, 20, null);
+    //                 if (collision1 == null && collision2 == null && collision3 == null)
+    //                 {
+    //                     Console.WriteLine("Stampik top free");
+    //                 }
+    //                 else
+    //                 {
+    //                     Console.WriteLine("Not close this doc");
+    //                 }
+    //             }
+
+    //         }
+    //         catch (Exception ex)
+    //         {
+    //             Console.WriteLine(ex);
+    //         }
+    //     }
     // }
 
     private void Button_Click(object? sender, RoutedEventArgs e)
@@ -154,6 +224,7 @@ public partial class MainWindow : Window
         var needClose = close_doc.IsChecked == true;
 
         bool sign_check = true;
+        _badCount = 0;
         IApplication? app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
         var oldHide = app.HideMessage;
         app.HideMessage = (ksHideMessageEnum)1;
@@ -173,13 +244,21 @@ public partial class MainWindow : Window
                 (name2.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "",
                 (name3.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "",
             };
+            IKompasDocument kompasDocument = app.Documents[0];
             for (int i = 0; i < total; i++)
             {
+                _badDocument = false;
                 if (!needClose)
                 {
                     app.Documents[i].Active = true;
+                    kompasDocument = app.Documents[i];
                 }
-                IKompasDocument kompasDocument = app.ActiveDocument;
+                else
+                {
+                    app.Documents[_badCount].Active = true;
+                    kompasDocument = app.Documents[_badCount];
+                }
+                // IKompasDocument kompasDocument = app.ActiveDocument;
                 if (kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentPart || kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentAssembly || kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentFragment)
                 {
                     kompasDocument.Close((DocumentCloseOptions)1);
@@ -215,11 +294,14 @@ public partial class MainWindow : Window
                 {
                     view.Delete();
                 }
-                Dispatcher.UIThread.Post(() => progressBar.Value = i + 1);
                 if (needClose == true)
                 {
-                    kompasDocument.Close((DocumentCloseOptions)1);
-                    continue;
+                    if (_badDocument == false)
+                    {
+                        kompasDocument.Close((DocumentCloseOptions)1);
+                        continue;
+                    }
+
                 }
             }
         }
@@ -252,45 +334,133 @@ public partial class MainWindow : Window
             obj[0].Delete();
         }
         var ins_manager = (IInsertionsManager)kompasDocument2D;
-
-        IKompasDocument2D1 document2D1 = (IKompasDocument2D1)kompasDocument2D;
-        var collision1 = document2D1.FindObject(kompasDocument2D.LayoutSheets[0].Format.FormatWidth - 180, 85, 21, null);
-        var collision2 = document2D1.FindObject(kompasDocument2D.LayoutSheets[0].Format.FormatWidth - 70, 85, 21, null);
-        var collision3 = document2D1.FindObject(kompasDocument2D.LayoutSheets[0].Format.FormatWidth - 140, 85, 21, null);
+        double x = kompasDocument2D.LayoutSheets[0].Format.FormatWidth;
         IDrawingDocument drawing = (IDrawingDocument)kompasDocument2D;
-        TechnicalDemand technical = drawing.TechnicalDemand;
-        Double[] techical_pos = (Double[])technical.BlocksGabarits;
+        TechnicalDemand technicalDemand = drawing.TechnicalDemand;
+        IText textTechnical = technicalDemand.Text;
+        IKompasDocument2D1 document2D1 = (IKompasDocument2D1)kompasDocument2D;
         var ins_definition = ins_manager.AddDefinition(0, "Штамп", AppContext.BaseDirectory + "Assets\\frame\\" + _target + ".frw");
-        double x, y;
-        bool left_side = false;
-        if (collision1 != null || collision2 != null || collision3 != null && kompasDocument2D.LayoutSheets[0].Format.VerticalOrientation != true)
+        double x_stamp = kompasDocument2D.LayoutSheets[0].Format.FormatWidth - _target switch { "VOL" => 130, "SHU" => 137, "QAR" => 129, _ => throw new NotImplementedException() };
+        var ins_obj = draw_cont.InsertionObjects;
+        var ins = ins_obj.Add(ins_definition);
+        Console.WriteLine(technicalDemand.IsCreated);
+        if (technicalDemand.IsCreated && auto_paced_stamp)
         {
-            x = kompasDocument2D.LayoutSheets[0].Format.FormatWidth - _target switch { "VOL" => 255, "SHU" => 245, "QAR" => 255, _ => throw new NotImplementedException() };
-            y = 25;
-            left_side = true;
+            Console.WriteLine("+");
+            try
+            {
+                double[] technicalPos = (double[])technicalDemand.BlocksGabarits;
+                for (int i = 0; i < technicalPos.Length; i++)
+                {
+                    Console.WriteLine(technicalPos[i]);
+
+                }
+                Console.WriteLine(x - 190);
+                if (technicalPos[0] >= x - 190)
+                {
+                    Console.WriteLine("TT:Top");
+                    Console.WriteLine(textTechnical.Count);
+                    var collision1 = document2D1.FindObject(technicalPos[2], technicalPos[1] + textTechnical.Count * 7, 20, null);
+                    var collision2 = document2D1.FindObject(x - 90, technicalPos[1] + textTechnical.Count * 7, 20, null);
+                    var collision3 = document2D1.FindObject(x - 180, technicalPos[1] + textTechnical.Count * 7, 20, null);
+                    if (collision1 == null && collision2 == null && collision3 == null)
+                    {
+                        Console.WriteLine("TT:Move");
+                        technicalDemand.BlocksGabarits = new double[4] { technicalPos[0], technicalPos[1] + 15, technicalPos[2], technicalPos[1] + textTechnical.Count * 7 + 20 };
+                        technicalDemand.Update();
+                        ins.SetPlacement(x_stamp, 85, 0, false);
+                        ins.Update();
+                    }
+                    else if (technicalPos[1] >= 96)
+                    {
+                        ins.SetPlacement(x_stamp, 85, 0, false);
+                        ins.Update();
+                    }
+                    {
+                        collision1 = document2D1.FindObject(185 + 5 + 120, 17, 20, null);
+                        collision2 = document2D1.FindObject(185 + 5 + 60, 17, 20, null);
+                        collision3 = document2D1.FindObject(185 + 5 + 5, 17, 20, null);
+                        if (collision1 == null && collision2 == null && collision3 == null)
+                        {
+                            Console.WriteLine("Stampik left");
+                            x_stamp = kompasDocument2D.LayoutSheets[0].Format.FormatWidth - _target switch { "VOL" => 250, "SHU" => 240, "QAR" => 252, _ => throw new NotImplementedException() };
+                            ins.SetPlacement(x_stamp, 17, 0, false);
+                            ins.Update();
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("TT:custom");
+                    var collision1 = document2D1.FindObject(x - 185, 85, 20, null);
+                    var collision2 = document2D1.FindObject(x - 90, 85, 20, null);
+                    var collision3 = document2D1.FindObject(x - 10, 85, 20, null);
+                    if (collision1 == null && collision2 == null && collision3 == null)
+                    {
+                        Console.WriteLine("Stampik top free");
+                        ins.SetPlacement(x_stamp, 85, 0, false);
+                        ins.Update();
+                    }
+                    else
+                    {
+                        collision1 = document2D1.FindObject(185 + 5 + 120, 17, 20, null);
+                        collision2 = document2D1.FindObject(185 + 5 + 60, 17, 20, null);
+                        collision3 = document2D1.FindObject(185 + 5 + 5, 17, 20, null);
+                        if (collision1 == null && collision2 == null && collision3 == null)
+                        {
+                            Console.WriteLine("Stampik left");
+                            x_stamp = kompasDocument2D.LayoutSheets[0].Format.FormatWidth - _target switch { "VOL" => 250, "SHU" => 240, "QAR" => 252, _ => throw new NotImplementedException() };
+                            ins.SetPlacement(x_stamp, 17, 0, false);
+                            ins.Update();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Not close this doc");
+                            _badCount++;
+                            _badDocument = true;
+                        }
+
+
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
         else
         {
-            x = kompasDocument2D.LayoutSheets[0].Format.FormatWidth - _target switch { "VOL" => 130, "SHU" => 137, "QAR" => 129, _ => throw new NotImplementedException() };
-            y = 85;
-        }
-        var ins_obj = draw_cont.InsertionObjects;
-        var ins = ins_obj.Add(ins_definition);
-        ins.SetPlacement(x, y, 0, false);
-        ins.Update();
-        if (techical_pos != null)
-        {
-            if (techical_pos[1] < 100 && auto_paced_stamp && !left_side)
+            var collision1 = document2D1.FindObject(x - 185, 85, 20, null);
+            var collision2 = document2D1.FindObject(x - 90, 85, 20, null);
+            var collision3 = document2D1.FindObject(x - 10, 85, 20, null);
+            if (collision1 == null && collision2 == null && collision3 == null)
             {
-                technical.AutoPlacement = true;
-                technical.Update();
+                Console.WriteLine("Stampik top free");
+                ins.SetPlacement(x_stamp, 85, 0, false);
+                ins.Update();
+            }
+            else
+            {
+                ins.SetPlacement(x_stamp, 85, 0, false);
+                ins.Update();
+                _badCount++;
+                _badDocument = true;
             }
         }
 
+
+
+
+
     }
+
+
+
     public void Set_text_stamp(IApplication app, IKompasDocument kompasDocument, string[] case_text)
     {
         var format = kompasDocument.LayoutSheets[0];
+        Console.WriteLine("Stamp");
         if (case_text[0] == null && case_text[1] == null && case_text[2] == null) return;
         else
         {
@@ -304,9 +474,21 @@ public partial class MainWindow : Window
                 textItem.Str = case_text[i];
 
             }
-            format.Stamp.Update();
-
         }
+        if (add_stamp.IsChecked == true)
+        {
+            var text = format.Stamp.Text[9];
+            text.Clear();
+            if (_stamps.TryGetValue(_target, out var lines))
+            {
+                foreach (var line in lines)
+                {
+                    var textLine = text.Add();
+                    textLine.Str = line;
+                }
+            }
+        }
+        format.Stamp.Update();
         return;
     }
     public void Set_sign(IApplication app, IKompasDocument2D kompasDocument2D)
@@ -328,7 +510,6 @@ public partial class MainWindow : Window
             if (text.Str != "")
             {
                 var path = AppContext.BaseDirectory + "Assets\\sign\\" + text.Str + ".png";
-                Debug.WriteLine(path);
                 view = Views.View["Подписи"];
                 var img_view_cont = (IDrawingContainer)view;
                 var img_view = img_view_cont.Rasters;
