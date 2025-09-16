@@ -60,6 +60,7 @@ public partial class MainWindow : Window
         var needSign = sign_stamp.IsChecked == true;
         var needPdf = saved_pdf.IsChecked == true;
         var auto_paced_stamp = auto_place.IsChecked == true;
+        var needClose = close_doc.IsChecked = true;
 
         bool sign_check = true;
         IApplication? app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
@@ -85,8 +86,12 @@ public partial class MainWindow : Window
             {
                 for (int i = 0; i < total; i++)
                 {
-                    app.Documents[i].Active = true;
                     IKompasDocument kompasDocument = app.ActiveDocument;
+                    if (kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentPart || kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentAssembly || kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentFragment)
+                    {
+                        kompasDocument.Close((DocumentCloseOptions)1);
+                        continue;
+                    }
                     if (kompasDocument.Type == KompasAPIObjectTypeEnum.ksObjectSpecificationDocument)
                     {
                         Set_text_stamp(app, kompasDocument, case_text);
@@ -118,6 +123,10 @@ public partial class MainWindow : Window
                         view.Delete();
                     }
                     Dispatcher.UIThread.Post(() => progressBar.Value = i + 1);
+                    if (needClose == true)
+                    {
+                        kompasDocument.Close((DocumentCloseOptions)1);
+                    }
                 }
 
             });
@@ -158,7 +167,7 @@ public partial class MainWindow : Window
         var collision3 = document2D1.FindObject(kompasDocument2D.LayoutSheets[0].Format.FormatWidth - 140, 85, 21, null);
         IDrawingDocument drawing = (IDrawingDocument)kompasDocument2D;
         TechnicalDemand technical = drawing.TechnicalDemand;
-        double[] techical_pos = (double[])technical.BlocksGabarits;
+        Double[] techical_pos = (Double[])technical.BlocksGabarits;
         var ins_definition = ins_manager.AddDefinition(0, "Штамп", @"\\server\\Чтение и запись\\Обмен файлами\\" + _target + ".frw");
         double x, y;
         bool left_side = false;
@@ -177,11 +186,15 @@ public partial class MainWindow : Window
         var ins = ins_obj.Add(ins_definition);
         ins.SetPlacement(x, y, 0, false);
         ins.Update();
-        if (techical_pos[1] < 100 && auto_paced_stamp && !left_side)
+        if (techical_pos != null)
         {
-            technical.AutoPlacement = true;
-            technical.Update();
+            if (techical_pos[1] < 100 && auto_paced_stamp && !left_side)
+            {
+                technical.AutoPlacement = true;
+                technical.Update();
+            }
         }
+
     }
     public void Set_text_stamp(IApplication app, IKompasDocument kompasDocument, string[] case_text)
     {
@@ -191,7 +204,7 @@ public partial class MainWindow : Window
         {
             for (int i = 0; i < 3; i++)
             {
-                if (case_text[i] == null) continue;
+                if (case_text[i] == "") continue;
                 var text = format.Stamp.Text[id_stamp[i]];
                 text.Clear();
                 var textLine = text.Add();

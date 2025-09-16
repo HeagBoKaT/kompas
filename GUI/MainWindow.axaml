@@ -42,11 +42,15 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="Разраб" />
                 <ComboBox Grid.Column="1" x:Name="name1" Width="120" CornerRadius="6">
+                    <ComboBoxItem></ComboBoxItem>
                     <ComboBoxItem>Жуков</ComboBoxItem>
                     <ComboBoxItem>Фадеев</ComboBoxItem>
                     <ComboBoxItem>Пащенко</ComboBoxItem>
                     <ComboBoxItem>Харланов</ComboBoxItem>
                     <ComboBoxItem>Шурпач</ComboBoxItem>
+                    <ComboBoxItem>Панфилов</ComboBoxItem>
+                    <ComboBoxItem>Сапожников</ComboBoxItem>
+                    <ComboBoxItem>Крюков</ComboBoxItem>
                     </ComboBox>
                 </Grid>
                     <Grid Grid.Row="1" Margin="8">
@@ -56,11 +60,15 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Проверил" />
                     <ComboBox Grid.Column="1" x:Name="name2" Width="120" CornerRadius="6">
+                        <ComboBoxItem></ComboBoxItem>
                         <ComboBoxItem>Жуков</ComboBoxItem>
                         <ComboBoxItem>Фадеев</ComboBoxItem>
                         <ComboBoxItem>Пащенко</ComboBoxItem>
                         <ComboBoxItem>Харланов</ComboBoxItem>
                         <ComboBoxItem>Шурпач</ComboBoxItem>
+                        <ComboBoxItem>Панфилов</ComboBoxItem>
+                        <ComboBoxItem>Сапожников</ComboBoxItem>
+                        <ComboBoxItem>Крюков</ComboBoxItem>
                         </ComboBox>
                 </Grid>
                     <Grid Grid.Row="2" Margin="8">
@@ -70,11 +78,15 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="Н. контр"/>
                     <ComboBox Grid.Column="1" x:Name="name3" Width="120" CornerRadius="6">
+                        <ComboBoxItem></ComboBoxItem>
                         <ComboBoxItem>Жуков</ComboBoxItem>
                         <ComboBoxItem>Фадеев</ComboBoxItem>
                         <ComboBoxItem>Пащенко</ComboBoxItem>
                         <ComboBoxItem>Харланов</ComboBoxItem>
                         <ComboBoxItem>Шурпач</ComboBoxItem>
+                        <ComboBoxItem>Панфилов</ComboBoxItem>
+                        <ComboBoxItem>Сапожников</ComboBoxItem>
+                        <ComboBoxItem>Крюков</ComboBoxItem>
                         </ComboBox>
                 </Grid>
             </Grid>    
@@ -108,9 +120,16 @@
                 </Border>
             
             <CheckBox HorizontalAlignment="Center" Grid.Row="2" x:Name="sign_stamp" Content="Подписать" IsChecked="False" Margin="10"></CheckBox>
-            <CheckBox HorizontalAlignment="Center" Grid.Row="3" x:Name="saved_pdf" Content="Сохранить pdf" IsChecked="True" Margin="10"></CheckBox>
-            <Button HorizontalAlignment="Center" Grid.Row="4" x:Name="button_run" Content="Холсим ❤" Click="Button_Click" Margin="10" Background="#33acca" CornerRadius="12"></Button>
-            <ProgressBar Grid.Row="5" x:Name="progressBar" Minimum="0" Maximum="100" Height="8" Foreground="#33acca"/>
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                    <CheckBox HorizontalAlignment="Center" Grid.Column="0" x:Name="saved_pdf" Content="Сохранить pdf" IsChecked="True" Margin="10"></CheckBox>
+                    <CheckBox HorizontalAlignment="Center" Grid.Column="1" x:Name="close_doc" Content="Закрывать документ" Margin="10"></CheckBox>
+            </Grid>
+            <Button HorizontalAlignment="Center" Grid.Row="5" x:Name="button_run" Content="Холсим ❤" Click="Button_Click" Margin="10" Background="#33acca" CornerRadius="12"></Button>
+            <ProgressBar Grid.Row="6" x:Name="progressBar" Minimum="0" Maximum="100" Height="8" Foreground="#33acca"/>
             <!-- <Button Grid.Row="9" x:Name="button_test" Content="test" Click="Test_button_click"/> -->
 
     </Grid>
