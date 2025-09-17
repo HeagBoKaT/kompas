@@ -145,74 +145,185 @@ public partial class MainWindow : Window
         public Dictionary<string, List<string>>? stamps { get; set; }
     }
 
-    // void Test_button_click(object? sender, RoutedEventArgs e)
-    // {
-    //     IApplication app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
-    //     IKompasDocument kompasDocument = app.ActiveDocument;
-    //     IKompasDocument2D kompasDocument2D = (IKompasDocument2D)kompasDocument;
-    //     IKompasDocument2D1 document2D1 = (IKompasDocument2D1)kompasDocument2D;
-    //     double x = kompasDocument2D.LayoutSheets[0].Format.FormatWidth;
-    //     IDrawingDocument drawing = (IDrawingDocument)kompasDocument2D;
-    //     TechnicalDemand technicalDemand = drawing.TechnicalDemand;
-    //     IText textTechnical = technicalDemand.Text;
-    //     if (technicalDemand != null)
-    //     {
-    //         try
-    //         {
-    //             double[] technicalPos = (double[])technicalDemand.BlocksGabarits;
-    //             for (int i = 0; i < technicalPos.Length; i++)
-    //             {
-    //                 Console.WriteLine(technicalPos[i]);
+    static bool Check_pos(double x, double y, IKompasDocument2D1 document2D1)
+    {
+        var collision = document2D1.FindObject(x, y, 10, null);
+        if (collision != null)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
 
-    //             }
-    //             Console.WriteLine(x - 190);
-    //             if (technicalPos[0] >= x - 190)
-    //             {
-    //                 Console.WriteLine("TT:Top");
-    //                 Console.WriteLine(textTechnical.Count);
-    //                 var collision1 = document2D1.FindObject(technicalPos[2], technicalPos[1] + textTechnical.Count * 7, 20, null);
-    //                 var collision2 = document2D1.FindObject(x - 90, technicalPos[1] + textTechnical.Count * 7, 20, null);
-    //                 var collision3 = document2D1.FindObject(x - 180, technicalPos[1] + textTechnical.Count * 7, 20, null);
-    //                 if (collision1 == null && collision2 == null && collision3 == null)
-    //                 {
-    //                     Console.WriteLine("TT:Move");
-    //                     technicalDemand.BlocksGabarits = new double[4] { technicalPos[0], technicalPos[1] + 15, technicalPos[2], technicalPos[1] + textTechnical.Count * 7 + 16 };
-    //                     technicalDemand.Update();
-    //                 }
-    //                 else
-    //                 {
-    //                     collision1 = document2D1.FindObject(185 + 5 + 120, 25, 20, null);
-    //                     collision2 = document2D1.FindObject(185 + 5 + 60, 25, 20, null);
-    //                     collision3 = document2D1.FindObject(185 + 5 + 5, 25, 20, null);
-    //                     if (collision1 == null && collision2 == null && collision3 == null)
-    //                     {
-    //                         Console.WriteLine("Stampik left");
-    //                     }
-    //                 }
-    //             }
-    //             else
-    //             {
-    //                 Console.WriteLine("TT:custom");
-    //                 var collision1 = document2D1.FindObject(x - 185, 85, 20, null);
-    //                 var collision2 = document2D1.FindObject(x - 90, 85, 20, null);
-    //                 var collision3 = document2D1.FindObject(x - 10, 85, 20, null);
-    //                 if (collision1 == null && collision2 == null && collision3 == null)
-    //                 {
-    //                     Console.WriteLine("Stampik top free");
-    //                 }
-    //                 else
-    //                 {
-    //                     Console.WriteLine("Not close this doc");
-    //                 }
-    //             }
+    }
 
-    //         }
-    //         catch (Exception ex)
-    //         {
-    //             Console.WriteLine(ex);
-    //         }
-    //     }
-    // }
+    void Test_button_click(object? sender, RoutedEventArgs e)
+    {
+        IApplication app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
+        IKompasDocument kompasDocument = app.ActiveDocument;
+        IKompasDocument2D kompasDocument2D = (IKompasDocument2D)kompasDocument;
+        IKompasDocument2D1 document2D1 = (IKompasDocument2D1)kompasDocument2D;
+        double x = kompasDocument2D.LayoutSheets[0].Format.FormatWidth;
+        IDrawingDocument drawing = (IDrawingDocument)kompasDocument2D;
+        TechnicalDemand technicalDemand = drawing.TechnicalDemand;
+        IText textTechnical = technicalDemand.Text;
+        bool moved_tt = false;
+        bool free_place = false;
+        if ((bool)auto_place.IsChecked)
+        {
+            if (technicalDemand != null)
+            {
+                try
+                {
+                    double[] technicalPos = (double[])technicalDemand.BlocksGabarits;
+                    for (int i = 0; i < technicalPos.Length; i++)
+                    {
+                        Console.WriteLine(i + ":" + technicalPos[i]);
+                    }
+                    if (technicalPos[0] >= x - 190 && technicalPos[1] >= 71 && technicalPos[1] <= 96) // проверяю если тт над рамкой иначе проверить свободное место над рамкой
+                    {
+                        Console.WriteLine("Orientir top");
+                        for (int i = 0; i < 10; i++) // проверяю верхнюю границу
+                        {
+                            if (technicalPos[1] <= 85)
+                            {
+                                technicalPos[1] = 85;
+                            }
+                            free_place = Check_pos(technicalPos[0] + 18 * i, technicalPos[1] + technicalDemand.Text.Count * 7 + 2, document2D1);
+
+                            Console.WriteLine(i + ":" + free_place + "|" + (technicalPos[0] + 18 * i) + ":" + (technicalPos[1] + technicalDemand.Text.Count * 7 + 2));
+                            if (!free_place)
+                            {
+                                moved_tt = true;
+                                break;
+                            }
+                        }
+                        if (!moved_tt)
+                        {
+                            Console.WriteLine("Move");
+                            technicalDemand.BlocksGabarits = new double[4] { technicalPos[0], technicalPos[1] + 12, technicalPos[2], technicalPos[1] + technicalDemand.Text.Count * 7 + 22 };
+                            technicalDemand.Update();
+                            moved_tt = true;
+
+                        }
+                        else
+                        {
+                            Console.WriteLine("Top in collision, dont move, checked left");
+                            double x_center = _target switch { "VOL" => 253, "SHU" => 242, "QAR" => 254 };
+                            double size = _target switch { "VOL" => 116, "SHU" => 93, "QAR" => 118 };
+                            for (int i = 0; i < 10; i++)
+                            {
+                                free_place = Check_pos(x - 190 - size + (size / 10) * i, 21, document2D1);
+                                Console.WriteLine(free_place + ":" + (x - 190 - size + size / 10));
+                                if (!free_place) break;
+                            }
+                            Console.WriteLine(free_place);
+                            if (free_place)
+                            {
+                                Console.WriteLine("Left stamp");
+                            }
+
+                        }
+
+                    }
+                    else
+                    {
+                        double size = _target switch { "VOL" => 116, "SHU" => 93, "QAR" => 118 };
+                        for (int i = 0; i < 10; i++)
+                        {
+                            free_place = Check_pos(x - 190 + (size / 10) * i, 82, document2D1);
+                            Console.WriteLine(free_place + ":" + (x - 190 + size / 10));
+                            if (!free_place) break;
+                        }
+                        Console.WriteLine(free_place);
+                        if (free_place)
+                        {
+                            Console.WriteLine("Free stamp top. TT xz");
+                        }
+                    }
+
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+            }
+            else
+            {
+                double size = _target switch { "VOL" => 116, "SHU" => 93, "QAR" => 118 };
+                for (int i = 0; i < 10; i++)
+                {
+                    free_place = Check_pos(x - 190 + (size / 10) * i, 82, document2D1);
+                    Console.WriteLine(free_place + ":" + (x - 190 + size / 10));
+                    if (!free_place) break;
+                }
+                Console.WriteLine(free_place);
+                if (free_place)
+                {
+                    Console.WriteLine("Free stamp top. TT xz");
+                }
+            }
+        }
+        // if (technicalDemand != null)
+        // {
+        //     try
+        //     {
+        //         double[] technicalPos = (double[])technicalDemand.BlocksGabarits;
+        //         for (int i = 0; i < technicalPos.Length; i++)
+        //         {
+        //             Console.WriteLine(technicalPos[i]);
+
+        //         }
+        //         Console.WriteLine(x - 190);
+        //         if (technicalPos[0] >= x - 190)
+        //         {
+        //             Console.WriteLine("TT:Top");
+        //             Console.WriteLine(textTechnical.Count);
+        //             var collision1 = document2D1.FindObject(technicalPos[2], technicalPos[1] + textTechnical.Count * 7, 20, null);
+        //             var collision2 = document2D1.FindObject(x - 90, technicalPos[1] + textTechnical.Count * 7, 20, null);
+        //             var collision3 = document2D1.FindObject(x - 180, technicalPos[1] + textTechnical.Count * 7, 20, null);
+        //             if (collision1 == null && collision2 == null && collision3 == null)
+        //             {
+        //                 Console.WriteLine("TT:Move");
+        //                 technicalDemand.BlocksGabarits = new double[4] { technicalPos[0], technicalPos[1] + 15, technicalPos[2], technicalPos[1] + textTechnical.Count * 7 + 16 };
+        //                 technicalDemand.Update();
+        //             }
+        //             else
+        //             {
+        //                 collision1 = document2D1.FindObject(185 + 5 + 120, 25, 20, null);
+        //                 collision2 = document2D1.FindObject(185 + 5 + 60, 25, 20, null);
+        //                 collision3 = document2D1.FindObject(185 + 5 + 5, 25, 20, null);
+        //                 if (collision1 == null && collision2 == null && collision3 == null)
+        //                 {
+        //                     Console.WriteLine("Stampik left");
+        //                 }
+        //             }
+        //         }
+        //         else
+        //         {
+        //             Console.WriteLine("TT:custom");
+        //             var collision1 = document2D1.FindObject(x - 185, 85, 20, null);
+        //             var collision2 = document2D1.FindObject(x - 90, 85, 20, null);
+        //             var collision3 = document2D1.FindObject(x - 10, 85, 20, null);
+        //             if (collision1 == null && collision2 == null && collision3 == null)
+        //             {
+        //                 Console.WriteLine("Stampik top free");
+        //             }
+        //             else
+        //             {
+        //                 Console.WriteLine("Not close this doc");
+        //             }
+        //         }
+
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         Console.WriteLine(ex);
+        //     }
+    }
 
     private void Button_Click(object? sender, RoutedEventArgs e)
     {
@@ -283,7 +394,7 @@ public partial class MainWindow : Window
                 {
                     Set_sign(app, kompasDocument2D);
                 }
-                if (needPdf)
+                if (needPdf && _badDocument == false)
                 {
                     SavePDF(kompasDocument);
                 }
@@ -340,119 +451,178 @@ public partial class MainWindow : Window
         IText textTechnical = technicalDemand.Text;
         IKompasDocument2D1 document2D1 = (IKompasDocument2D1)kompasDocument2D;
         var ins_definition = ins_manager.AddDefinition(0, "Штамп", AppContext.BaseDirectory + "Assets\\frame\\" + _target + ".frw");
-        double x_stamp = kompasDocument2D.LayoutSheets[0].Format.FormatWidth - _target switch { "VOL" => 130, "SHU" => 137, "QAR" => 129, _ => throw new NotImplementedException() };
+        // double x_stamp = kompasDocument2D.LayoutSheets[0].Format.FormatWidth - _target switch { "VOL" => 130, "SHU" => 137, "QAR" => 129, _ => throw new NotImplementedException() };
         var ins_obj = draw_cont.InsertionObjects;
         var ins = ins_obj.Add(ins_definition);
         Console.WriteLine(technicalDemand.IsCreated);
-        if (technicalDemand.IsCreated && auto_paced_stamp)
+        bool moved_tt = false;
+        bool free_place = false;
+        double x_center = _target switch { "VOL" => 250, "SHU" => 238, "QAR" => 252, _ => throw new NotImplementedException() };
+        double size = _target switch { "VOL" => 116, "SHU" => 95, "QAR" => 118, _ => throw new NotImplementedException() };
+        // ins.SetPlacement(x_stamp, 85, 0, false);
+        // ins.Update();
+        Console.WriteLine(technicalDemand.IsCreated);
+        if (auto_paced_stamp)
         {
-            Console.WriteLine("+");
-            try
+            if (technicalDemand.IsCreated)
             {
-                double[] technicalPos = (double[])technicalDemand.BlocksGabarits;
-                for (int i = 0; i < technicalPos.Length; i++)
+                try
                 {
-                    Console.WriteLine(technicalPos[i]);
-
-                }
-                Console.WriteLine(x - 190);
-                if (technicalPos[0] >= x - 190)
-                {
-                    Console.WriteLine("TT:Top");
-                    Console.WriteLine(textTechnical.Count);
-                    var collision1 = document2D1.FindObject(technicalPos[2], technicalPos[1] + textTechnical.Count * 7, 20, null);
-                    var collision2 = document2D1.FindObject(x - 90, technicalPos[1] + textTechnical.Count * 7, 20, null);
-                    var collision3 = document2D1.FindObject(x - 180, technicalPos[1] + textTechnical.Count * 7, 20, null);
-                    if (collision1 == null && collision2 == null && collision3 == null)
+                    double[] technicalPos = (double[])technicalDemand.BlocksGabarits;
+                    for (int i = 0; i < technicalPos.Length; i++)
                     {
-                        Console.WriteLine("TT:Move");
-                        technicalDemand.BlocksGabarits = new double[4] { technicalPos[0], technicalPos[1] + 15, technicalPos[2], technicalPos[1] + textTechnical.Count * 7 + 20 };
-                        technicalDemand.Update();
-                        ins.SetPlacement(x_stamp, 85, 0, false);
-                        ins.Update();
+                        Console.WriteLine(i + ":" + technicalPos[i]);
                     }
-                    else if (technicalPos[1] >= 96)
+                    if (technicalPos[0] >= x - 190 && technicalPos[1] >= 71 && technicalPos[1] <= 96) // проверяю если тт над рамкой и двигаю
                     {
-                        ins.SetPlacement(x_stamp, 85, 0, false);
-                        ins.Update();
-                    }
-                    {
-                        collision1 = document2D1.FindObject(185 + 5 + 120, 17, 20, null);
-                        collision2 = document2D1.FindObject(185 + 5 + 60, 17, 20, null);
-                        collision3 = document2D1.FindObject(185 + 5 + 5, 17, 20, null);
-                        if (collision1 == null && collision2 == null && collision3 == null)
+                        Console.WriteLine("Orientir top");
+                        for (int i = 0; i < 10; i++) // проверяю верхнюю границу для тт
                         {
-                            Console.WriteLine("Stampik left");
-                            x_stamp = kompasDocument2D.LayoutSheets[0].Format.FormatWidth - _target switch { "VOL" => 250, "SHU" => 240, "QAR" => 252, _ => throw new NotImplementedException() };
-                            ins.SetPlacement(x_stamp, 17, 0, false);
+                            if (technicalPos[1] <= 85)
+                            {
+                                technicalPos[1] = 85;
+                            }
+                            free_place = Check_pos(technicalPos[0] + 18 * i, technicalPos[1] + technicalDemand.Text.Count * 7 + 2, document2D1);
+
+                            Console.WriteLine(i + ":" + free_place + "|" + (technicalPos[0] + 18 * i) + ":" + (technicalPos[1] + technicalDemand.Text.Count * 7 + 2));
+                            if (!free_place)
+                            {
+                                moved_tt = true;
+                                break;
+                            }
+                        }
+                        if (!moved_tt)
+                        {
+                            Console.WriteLine("Move");
+                            technicalDemand.BlocksGabarits = new double[4] { technicalPos[0], technicalPos[1] + 12, technicalPos[2], technicalPos[1] + technicalDemand.Text.Count * 7 + 22 };
+                            technicalDemand.Update();
+                            moved_tt = true;
+                            ins.SetPlacement(x - 190 + size / 2, 82, 0, false);
                             ins.Update();
+
+                        }
+                        else
+                        {
+                            Console.WriteLine("Top in collision, dont move, checked left");
+                            for (int i = 0; i < 10; i++)
+                            {
+                                free_place = Check_pos(x - 190 - size + (size / 10) * i, 17, document2D1);
+                                Console.WriteLine(free_place + ":" + (x - 190 - size + size / 10));
+                                if (!free_place) break;
+                            }
+                            Console.WriteLine("TT enable, left pos, dont move" + free_place);
+                            if (free_place)
+                            {
+                                Console.WriteLine("Left stamp");
+                                ins.SetPlacement(x - x_center, 16, 0, false);
+                                ins.Update();
+                            }
+                            else
+                            {
+                                _badDocument = true;
+                                _badCount++;
+                            }
+
+
+                        }
+
+                    }
+                    else // проверяю свободное место над рамкой если тт не над рамкой
+                    {
+                        if (technicalPos[0] <= x - 190 && technicalPos[1] <= 21)
+                        {
+                            _badDocument = true;
+                            _badCount++;
+                            return;
+                        }
+
+                        for (int i = 0; i < 10; i++)
+                        {
+                            free_place = Check_pos(x - 190 + (size / 10) * i, 82, document2D1);
+                            Console.WriteLine(free_place + ":" + (x - 190 + size / 10));
+                            if (!free_place) break;
+                        }
+                        Console.WriteLine("TT unknow pos, top pos" + free_place);
+                        if (free_place)
+                        {
+                            Console.WriteLine("Free stamp top. TT xz");
+                            ins.SetPlacement(x - 190 + size / 2, 82, 0, false);
+                            ins.Update();
+                        }
+                        else // слева от рамки
+                        {
+                            for (int i = 0; i < 10; i++)
+                            {
+                                free_place = Check_pos(x - 190 - size + (size / 10) * i, 17, document2D1);
+                                Console.WriteLine(free_place + ":" + (x - 190 - size + size / 10));
+                                if (!free_place) break;
+                            }
+                            if (free_place)
+                            {
+                                Console.WriteLine("Left stamp");
+                                ins.SetPlacement(x - x_center, 16, 0, false);
+                                ins.Update();
+                            }
+                            else
+                            {
+                                _badDocument = true;
+                                _badCount++;
+                            }
+
                         }
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    Console.WriteLine("TT:custom");
-                    var collision1 = document2D1.FindObject(x - 185, 85, 20, null);
-                    var collision2 = document2D1.FindObject(x - 90, 85, 20, null);
-                    var collision3 = document2D1.FindObject(x - 10, 85, 20, null);
-                    if (collision1 == null && collision2 == null && collision3 == null)
+                    Console.WriteLine(ex);
+                }
+            }
+            else // если тт нет то проверяю просто
+            {
+
+                for (int i = 0; i < 10; i++)
+                {
+                    free_place = Check_pos(x - 190 + (size / 10) * i, 82, document2D1);
+                    Console.WriteLine(free_place + ":" + (x - 190 + size / 10));
+                    if (!free_place) break;
+                }
+                Console.WriteLine("TT not in doc, top pos" + free_place);
+                if (free_place) // над рамкой
+                {
+                    Console.WriteLine("Free stamp top. TT xz");
+                    ins.SetPlacement(x - 190 + size / 2, 82, 0, false);
+                    ins.Update();
+                }
+                else // слева от рамки
+                {
+                    for (int i = 0; i < 10; i++)
                     {
-                        Console.WriteLine("Stampik top free");
-                        ins.SetPlacement(x_stamp, 85, 0, false);
+                        free_place = Check_pos(x - 190 - size + (size / 10) * i, 17, document2D1);
+                        Console.WriteLine(free_place + ":" + (x - 190 - size + size / 10));
+                        if (!free_place) break;
+                    }
+                    Console.WriteLine("TT not in doc, left pos" + free_place);
+                    if (free_place)
+                    {
+                        Console.WriteLine("Left stamp");
+                        ins.SetPlacement(x - x_center, 16, 0, false);
                         ins.Update();
                     }
                     else
                     {
-                        collision1 = document2D1.FindObject(185 + 5 + 120, 17, 20, null);
-                        collision2 = document2D1.FindObject(185 + 5 + 60, 17, 20, null);
-                        collision3 = document2D1.FindObject(185 + 5 + 5, 17, 20, null);
-                        if (collision1 == null && collision2 == null && collision3 == null)
-                        {
-                            Console.WriteLine("Stampik left");
-                            x_stamp = kompasDocument2D.LayoutSheets[0].Format.FormatWidth - _target switch { "VOL" => 250, "SHU" => 240, "QAR" => 252, _ => throw new NotImplementedException() };
-                            ins.SetPlacement(x_stamp, 17, 0, false);
-                            ins.Update();
-                        }
-                        else
-                        {
-                            Console.WriteLine("Not close this doc");
-                            _badCount++;
-                            _badDocument = true;
-                        }
-
-
+                        _badDocument = true;
+                        _badCount++;
                     }
+
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
+
             }
         }
         else
         {
-            var collision1 = document2D1.FindObject(x - 185, 85, 20, null);
-            var collision2 = document2D1.FindObject(x - 90, 85, 20, null);
-            var collision3 = document2D1.FindObject(x - 10, 85, 20, null);
-            if (collision1 == null && collision2 == null && collision3 == null)
-            {
-                Console.WriteLine("Stampik top free");
-                ins.SetPlacement(x_stamp, 85, 0, false);
-                ins.Update();
-            }
-            else
-            {
-                ins.SetPlacement(x_stamp, 85, 0, false);
-                ins.Update();
-                _badCount++;
-                _badDocument = true;
-            }
+            ins.SetPlacement(x - 190 + size / 2, 82, 0, false);
+            ins.Update();
         }
-
-
-
-
-
     }
 
 

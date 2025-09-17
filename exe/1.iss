@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "KompasTweaker"
-#define MyAppVersion "1.0.8"
+#define MyAppVersion "1.0.9"
 #define MyAppPublisher "HeagBoKaT"
 #define MyAppURL "https://www.heagbokat.ru/"
 #define MyAppExeName "GUI.exe"
