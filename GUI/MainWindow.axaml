@@ -5,18 +5,26 @@
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="250"
         Icon="/Assets/icon.ico"
         x:Class="GUI.MainWindow"
-        Title="Люблю ХОЛСИМ"
+        Title="Kompas Tweaker"
         Width="280"
-        Height="450"
-        MinHeight="420"
+        Height="460"
+        MinHeight="460"
         MinWidth="280"
-        MaxHeight="450"
+        MaxHeight="460"
         MaxWidth="280"
         >
 
 
 <StackPanel Background="#484848">
-    <Grid Margin="4" HorizontalAlignment="Center" VerticalAlignment="Center">
+<DockPanel>
+    <Menu DockPanel.Dock="Top">
+        <MenuItem Header="_Файл"/>
+        <MenuItem Header="_Настройки"/>
+        <MenuItem Header="_Инфо"/>
+    </Menu>
+    <TextBlock/>
+</DockPanel>
+    <Grid Margin="4,-12,4,4" HorizontalAlignment="Center" VerticalAlignment="Center">
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
@@ -41,7 +49,7 @@
                     <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="Разраб" />
+                <TextBlock Grid.Column="0" Text="Разраб" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="36,0,0,0"/>
                 <ComboBox Grid.Column="1" x:Name="name1" Width="120" CornerRadius="6">
                     </ComboBox>
                 </Grid>
@@ -50,7 +58,7 @@
                         <ColumnDefinition Width="1*"/>
                         <ColumnDefinition Width="1*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Проверил" />
+                    <TextBlock Grid.Column="0" Text="Проверил" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="36,0,0,0"/>
                     <ComboBox Grid.Column="1" x:Name="name2" Width="120" CornerRadius="6">
                         </ComboBox>
                 </Grid>
@@ -59,7 +67,7 @@
                         <ColumnDefinition Width="1*"/>
                         <ColumnDefinition Width="1*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="Н. контр"/>
+                    <TextBlock Grid.Column="0" Text="Н. контр" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="36,0,0,0"/>
                     <ComboBox Grid.Column="1" x:Name="name3" Width="120" CornerRadius="6">
                         </ComboBox>
                 </Grid>
@@ -85,9 +93,27 @@
                             <ColumnDefinition Width="1*"/>
                             <ColumnDefinition Width="1*"/>
                         </Grid.ColumnDefinitions>
-                        <RadioButton Margin="8" x:Name="rbVol" GroupName="Target" Tag="VOL" Content="VOL" Checked="RadioButton_Checked" Grid.Column="0"/>
-                        <RadioButton Margin="8" x:Name="rbShu" GroupName="Target" Tag="SHU" Content="SHU" Checked="RadioButton_Checked" Grid.Column="1"/>
-                        <RadioButton Margin="8" x:Name="rbQar" GroupName="Target" Tag="QAR" Content="QAR" Checked="RadioButton_Checked" Grid.Column="2"/>
+                        <RadioButton Margin="8" x:Name="rbVol" GroupName="Target" Tag="VOL" Content="VOL" Checked="RadioButton_Checked" Grid.Column="0">
+                            <RadioButton.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Добавить" Click="Radiobutton_add_click"/>
+                                </ContextMenu>
+                            </RadioButton.ContextMenu>
+                            </RadioButton>
+                        <RadioButton Margin="8" x:Name="rbShu" GroupName="Target" Tag="SHU" Content="SHU" Checked="RadioButton_Checked" Grid.Column="1">
+                            <RadioButton.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Добавить" Click="Radiobutton_add_click"/>
+                                </ContextMenu>
+                            </RadioButton.ContextMenu>
+                            </RadioButton>
+                        <RadioButton Margin="8" x:Name="rbQar" GroupName="Target" Tag="QAR" Content="QAR" Checked="RadioButton_Checked" Grid.Column="2">
+                            <RadioButton.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Добавить" Click="Radiobutton_add_click"/>
+                                </ContextMenu>
+                            </RadioButton.ContextMenu>
+                            </RadioButton>
                         </Grid>
                     </Grid>
                 </Border>
@@ -102,8 +128,8 @@
                     <CheckBox HorizontalAlignment="Center" Grid.Column="1" x:Name="close_doc" Content="Закрывать документ" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
             </Grid>
             <Button HorizontalAlignment="Center" Grid.Row="5" x:Name="button_run" Content="Холсим ❤" Click="Button_Click" Margin="10" Background="#33acca" CornerRadius="12"></Button>
-            <ProgressBar Grid.Row="6" x:Name="progressBar" Minimum="0" Maximum="100" Height="8" Foreground="#33acca"/>
-            <Button Grid.Row="9" x:Name="button_test" Content="test" Click="Test_button_click"/>
+            <ProgressBar Grid.Row="6" x:Name="progressBar" Minimum="0" Maximum="100" Height="8" Foreground="#33acca"/>   
+            <!-- <Button Grid.Row="9" x:Name="button_test" Content="test" Click="Test_button_click"/> -->
 
     </Grid>
 </StackPanel>
