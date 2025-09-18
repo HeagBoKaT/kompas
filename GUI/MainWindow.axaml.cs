@@ -8,6 +8,13 @@ using Avalonia.Interactivity;
 using Kompas6Constants;
 using KompasAPI7;
 using System.Text.Json;
+using Avalonia.Styling;
+using Avalonia.Themes.Fluent;
+using PdfSharp.Pdf.IO;
+using PdfSharp.Drawing;
+using Microsoft.Win32;
+using Avalonia;
+using Avalonia.Media;
 
 namespace GUI;
 
@@ -32,6 +39,31 @@ public partial class MainWindow : Window
         InitializeComponent();
         LoadNames();
         LoadState();
+        const string registryKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
+        const string valueName = "AppsUseLightTheme";
+
+        using (RegistryKey key = Registry.CurrentUser.OpenSubKey(registryKeyPath))
+        {
+            if (key != null)
+            {
+                object value = key.GetValue(valueName);
+                if (value != null && value is int intValue)
+                {
+                    if (intValue == 1)
+                    {
+                        Console.WriteLine("Light");
+                        mainWindow.Background = new SolidColorBrush(Color.FromArgb(235, 229, 229, 229));
+                        mainWindow.Foreground = new SolidColorBrush(Color.FromRgb(0, 0, 0));
+                    }
+
+                    else mainWindow.Background = new SolidColorBrush(Color.FromArgb(235, 72, 72, 72));
+                }
+                else
+                {
+                    Console.WriteLine("Не удалось определить тему.");
+                }
+            }
+        }
     }
 
     private void LoadState()
@@ -301,23 +333,24 @@ public partial class MainWindow : Window
 
     private void Button_Click(object? sender, RoutedEventArgs e)
     {
-        LoadNames();
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
         button_run.IsEnabled = false;
         var addStamp = add_stamp.IsChecked == true;
         var needSign = sign_stamp.IsChecked == true;
         var needPdf = saved_pdf.IsChecked == true;
         var auto_paced_stamp = auto_place.IsChecked == true;
         var needClose = close_doc.IsChecked == true;
-
         bool shouldFillTitle = addStamp
                                || ((name1.SelectedItem as ComboBoxItem)?.Content?.ToString()?.Length > 0
                                    || (name2.SelectedItem as ComboBoxItem)?.Content?.ToString()?.Length > 0
                                    || (name3.SelectedItem as ComboBoxItem)?.Content?.ToString()?.Length > 0);
         _badCount = 0;
-
         IApplication app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
         var oldHide = app.HideMessage;
+        app.Visible = silentCheckBox.IsChecked != true;
         app.HideMessage = (ksHideMessageEnum)1;
+
         try
         {
             int total = app.Documents.Count;
@@ -350,38 +383,33 @@ public partial class MainWindow : Window
                     continue;
                 }
 
-                if (kompasDocument.Type == KompasAPIObjectTypeEnum.ksObjectSpecificationDocument)
-                {
-                    Set_text_stamp(app, kompasDocument, case_text);
-                    SavePDF(kompasDocument);
-                    continue;
-                }
+                // if (kompasDocument.Type == KompasAPIObjectTypeEnum.ksObjectSpecificationDocument)
+                // {
+                //     Set_text_stamp(app, kompasDocument, case_text);
+                //     SavePDF_spec(kompasDocument);
+                //     continue;
+                // }
 
-                IKompasDocument2D kompasDocument2D = (IKompasDocument2D)kompasDocument;
 
                 if (addStamp)
                 {
-                    Set_holc_stamp(kompasDocument2D, auto_paced_stamp);
+                    Set_holc_stamp(kompasDocument, auto_paced_stamp);
                 }
 
-                if (shouldFillTitle || addStamp)
+                if (shouldFillTitle)
                 {
                     Set_text_stamp(app, kompasDocument, case_text);
                 }
 
                 if (needSign)
                 {
-                    Set_sign(app, kompasDocument2D);
+                    Set_sign(app, kompasDocument);
                 }
 
-                if (needPdf && _badDocument == false)
+                if (needPdf)
                 {
                     SavePDF(kompasDocument);
                 }
-
-                var Views = kompasDocument2D.ViewsAndLayersManager.Views;
-                var signView = Views.View["Подписи"];
-                signView?.Delete();
 
                 if (needClose && !_badDocument) kompasDocument.Close((DocumentCloseOptions)1);
                 progressBar.Value = progressBar.Value + 1;
@@ -392,12 +420,71 @@ public partial class MainWindow : Window
             app.HideMessage = oldHide;
             progressBar.Value = progressBar.Value + 1;
             button_run.IsEnabled = true;
+            if (!app.Visible) app.Visible = !app.Visible;
         }
+
+        sw.Stop();
+        Console.WriteLine($"Time: {sw.ElapsedMilliseconds} ms");
     }
 
-    void Set_holc_stamp(IKompasDocument2D kompasDocument2D, bool auto_paced_stamp)
+
+    private void SavePDF_spec(IKompasDocument kompasDocument)
     {
+        string outDir = Path.Combine(kompasDocument.Path, "Чертежи в pdf");
+        Directory.CreateDirectory(outDir);
+        var localPath = kompasDocument.Path + "\\Чертежи в pdf\\" +
+                        Path.GetFileNameWithoutExtension(kompasDocument.Name) + ".pdf";
+        IKompasDocument1 kompasDocument1 = (IKompasDocument1)kompasDocument;
+        kompasDocument1.SaveAsEx(localPath, 0);
+        var format = kompasDocument.LayoutSheets[0];
+        var stamp = format.Stamp;
+        var doc = PdfReader.Open(localPath, PdfDocumentOpenMode.Modify);
+        var page = doc.Pages[0];
+        using var gfx = XGraphics.FromPdfPage(page);
+        double x = 190; // pt, от верхнего левого угла
+        double[] y = { 768, 780, 810 }; // pt, вниз
+        double width = 44; // pt
+        for (int i = 0; i < 3; i++)
+        {
+            var text = stamp.Text[id_stamp[i]];
+            var signPath = Path.Combine(AppContext.BaseDirectory, "Assets", "sign", text.Str + ".png");
+            using var img = XImage.FromFile(signPath);
+            double height = img.PixelHeight * width / img.PixelWidth;
+            Console.WriteLine($"{text.Str}: {img.PixelWidth}x{img.PixelHeight} -> {width}x{height}");
+            gfx.DrawImage(img, x - (width / 2), y[i] - (height / 2), width, height);
+        }
+
+        doc.Save(localPath);
+    }
+
+    void Set_holc_stamp(IKompasDocument kompasDocument, bool auto_paced_stamp)
+    {
+        // Установка дополнительного штампа (фрейма) на чертёж.
+        // Логика:
+        // 1. Пропускаем спецификации (там используем другой метод сохранения PDF).
+        // 2. Подготавливаем / создаём отдельное представление (View) "Штамп".
+        // 3. Зачищаем предыдущее содержимое штампа (если уже вставлялся).
+        // 4. Вставляем .frw-файл выбранного формата (_target) как объект вставки.
+        // 5. Если включён авто-режим — пытаемся разместить штамп:
+        //    a) Сначала предпочитаем позицию над основной рамкой (top, Y≈82)
+        //    b) Если занято или мешает TechnicalDemand (ТТ) — пробуем слева (left, Y≈16)
+        //    c) Для вертикальных форматов A4/A3 блокируем смещение влево (расцениваем как плохой документ)
+        //    d) Пытаемся при необходимости сдвинуть сам TechnicalDemand вверх, если он перекрывает область штампа
+        // 6. Если авто-режим выключен — просто ставим в верх (над рамкой)
+        // Переменные:
+        //  _badDocument / _badCount — индикаторы невозможности корректного размещения штампа
+        //  technicalDemand — блок технических требований, который может мешать
+        //  size / x_center — габариты и центральная координата штампа зависят от выбранного Target
+
+        if (kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentSpecification)
+        {
+            // Для спецификаций штамп не ставим
+            return;
+        }
+
+        IKompasDocument2D kompasDocument2D = (IKompasDocument2D)kompasDocument;
         Views Views = kompasDocument2D.ViewsAndLayersManager.Views;
+        // Получаем существующий View "Штамп" либо создаём новый (тип 1 — обычный вид)
         var view = Views.View["Штамп"] ?? Views.Add((LtViewType)1);
         view.X = 0;
         view.Y = 0;
@@ -406,16 +493,19 @@ public partial class MainWindow : Window
         view.Current = true;
         view.Update();
         view = Views.View["Штамп"];
+        // Красим нулевой слой (вероятно для визуального выделения — 255 = красный)
         view.Layers.Layer[0].Color = 255;
         view.Layers.Layer[0].Update();
         var draw_cont = (IDrawingContainer)view;
         if (view.ObjectCount > 0)
         {
+            // Если ранее что-то вставляли — удаляем первый объект (избегаем дублирования)
             dynamic obj = draw_cont.Objects[0];
             obj[0].Delete();
         }
 
         var ins_manager = (IInsertionsManager)kompasDocument2D;
+        // Ширина формата (для вычисления смещения от правого края)
         double x = kompasDocument2D.LayoutSheets[0].Format.FormatWidth;
         IDrawingDocument drawing = (IDrawingDocument)kompasDocument2D;
         TechnicalDemand technicalDemand = drawing.TechnicalDemand;
@@ -424,13 +514,17 @@ public partial class MainWindow : Window
         var format = kompasDocument2D.LayoutSheets[0].Format;
 
 
+        // Путь к нужному фрейму согласно выбранной цели (VOL/SHU/QAR)
         var frwPath = Path.Combine(AppContext.BaseDirectory, "Assets", "frame", _target.ToString() + ".frw");
+        // Создаём определение и сам объект вставки
         var ins_definition = ins_manager.AddDefinition(0, "Штамп", frwPath);
         var ins_obj = draw_cont.InsertionObjects;
         var ins = ins_obj.Add(ins_definition);
         Console.WriteLine(technicalDemand.IsCreated);
+        // Флаги работы алгоритма
         bool moved_tt = false;
         bool free_place = false;
+        // Предопределённые смещения центра и ширина для разных видов штампа
         double x_center = _target switch
         {
             Target.VOL => 250, Target.SHU => 238, Target.QAR => 252, _ => throw new NotImplementedException()
@@ -442,10 +536,12 @@ public partial class MainWindow : Window
         Console.WriteLine(technicalDemand.IsCreated);
         if (auto_paced_stamp)
         {
+            // Автоматическое размещение штампа
             if (technicalDemand.IsCreated)
             {
                 try
                 {
+                    // Получаем габариты блока TechnicalDemand (массив: x1, y1, x2, y2)
                     double[] technicalPos = (double[])technicalDemand.BlocksGabarits;
                     for (int i = 0; i < technicalPos.Length; i++)
                     {
@@ -455,14 +551,17 @@ public partial class MainWindow : Window
                     if (technicalPos[0] >= x - 190 && technicalPos[1] >= 71 &&
                         technicalPos[1] <= 96) // проверяю если тт над рамкой и двигаю
                     {
+                        // Сценарий: TechnicalDemand прямо над рамкой — нужно подвинуть его выше, если есть место
                         Console.WriteLine("Orientir top");
                         for (int i = 0; i < 10; i++) // проверяю верхнюю границу для тт
                         {
                             if (technicalPos[1] <= 85)
                             {
+                                // Принудительно ограничиваем минимальный Y (чтобы не наезжал на штамп)
                                 technicalPos[1] = 85;
                             }
 
+                            // Проверяем отсутствие коллизий по точкам над планируемой областью перемещения ТТ
                             free_place = Check_pos(technicalPos[0] + 18 * i,
                                 technicalPos[1] + technicalDemand.Text.Count * 7 + 2, document2D1);
 
@@ -470,6 +569,7 @@ public partial class MainWindow : Window
                                               (technicalPos[1] + technicalDemand.Text.Count * 7 + 2));
                             if (!free_place)
                             {
+                                // Коллизия — придётся ставить штамп в альтернативном месте
                                 moved_tt = true;
                                 break;
                             }
@@ -477,6 +577,7 @@ public partial class MainWindow : Window
 
                         if (!moved_tt)
                         {
+                            // Есть место чтобы поднять TechnicalDemand — сдвигаем его вверх и ставим штамп сверху
                             Console.WriteLine("Move");
                             technicalDemand.BlocksGabarits = new double[4]
                             {
@@ -485,14 +586,17 @@ public partial class MainWindow : Window
                             };
                             technicalDemand.Update();
                             moved_tt = true;
+                            // Ставим штамп по верхней позиции (x - 188 + size/2, Y=82)
                             ins.SetPlacement(x - 188 + size / 2, 82, 0, false);
                             ins.Update();
                         }
                         else
                         {
+                            // Не удалось двинуть TechnicalDemand — пробуем левую позицию, если формат позволяет
                             if ((format.VerticalOrientation && (format.Format == ksDocumentFormatEnum.ksFormatA4 ||
                                                                 format.Format == ksDocumentFormatEnum.ksFormatA3)))
                             {
+                                // Для вертикальных A4/A3 — отказ
                                 _badCount++;
                                 _badDocument = true;
                                 return;
@@ -501,6 +605,7 @@ public partial class MainWindow : Window
                             Console.WriteLine("Top in collision, dont move, checked left");
                             for (int i = 0; i < 10; i++)
                             {
+                                // Проверяем сектор слева от рамки (Y=17)
                                 free_place = Check_pos(x - 190 - size + (size / 10) * i, 17, document2D1);
                                 Console.WriteLine(free_place + ":" + (x - 190 - size + size / 10));
                                 if (!free_place) break;
@@ -509,12 +614,14 @@ public partial class MainWindow : Window
                             Console.WriteLine("TT enable, left pos, dont move" + free_place);
                             if (free_place)
                             {
+                                // Есть место слева — ставим штамп
                                 Console.WriteLine("Left stamp");
                                 ins.SetPlacement(x - x_center, 16, 0, false);
                                 ins.Update();
                             }
                             else
                             {
+                                // Ни сверху ни слева — помечаем документ как проблемный
                                 _badDocument = true;
                                 _badCount++;
                             }
@@ -522,15 +629,11 @@ public partial class MainWindow : Window
                     }
                     else // проверяю свободное место над рамкой если тт не над рамкой
                     {
-                        if (technicalPos[0] <= x - 190 && technicalPos[1] <= 21)
-                        {
-                            _badDocument = true;
-                            _badCount++;
-                            return;
-                        }
+                        // TechnicalDemand не в верхней зоне — сначала пытаемся поставить штамп сверху
 
                         for (int i = 0; i < 10; i++)
                         {
+                            // Проверяем верхнюю позицию под штамп (Y=82)
                             free_place = Check_pos(x - 188 + (size / 10) * i, 82, document2D1);
                             Console.WriteLine(free_place + ":" + (x - 188 + size / 10));
                             if (!free_place) break;
@@ -539,12 +642,66 @@ public partial class MainWindow : Window
                         Console.WriteLine("TT unknow pos, top pos" + free_place);
                         if (free_place)
                         {
+                            // Верх свободен — ставим штамп
                             Console.WriteLine("Free stamp top. TT xz");
                             ins.SetPlacement(x - 188 + size / 2, 82, 0, false);
                             ins.Update();
                         }
                         else // слева от рамки
                         {
+                            if (technicalPos[0] <= x - 190 && technicalPos[1] <= 21)
+                            {
+                                // ТТ находится в зоне будущего левого штампа. Пытаемся приподнять его вместо немедленного отказа.
+                                try
+                                {
+                                    double
+                                        desiredY =
+                                            28; // минимальное безопасное положение верхней границы ТТ над левым штампом
+                                    if (technicalPos[1] < desiredY)
+                                    {
+                                        bool canMoveTT = true;
+                                        // Проверяем отсутствие коллизий по линии предполагаемого верхнего края ТТ после подъёма
+                                        for (int i = 0; i < 10; i++)
+                                        {
+                                            if (!Check_pos(technicalPos[0] + 18 * i,
+                                                    desiredY + technicalDemand.Text.Count * 7 + 2, document2D1))
+                                            {
+                                                canMoveTT = false;
+                                                break;
+                                            }
+                                        }
+
+                                        if (canMoveTT)
+                                        {
+                                            technicalDemand.BlocksGabarits = new double[4]
+                                            {
+                                                technicalPos[0], desiredY, technicalPos[2],
+                                                desiredY + technicalDemand.Text.Count * 7 + 22
+                                            };
+                                            technicalDemand.Update();
+                                            technicalPos[1] =
+                                                desiredY; // обновляем локально чтобы последующая логика видела новое положение
+                                            Console.WriteLine("Left area: TT moved up to free stamp zone");
+                                        }
+                                        else
+                                        {
+                                            // Не удалось сдвинуть — помечаем как проблемный документ
+                                            _badDocument = true;
+                                            _badCount++;
+                                            return;
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine("Error moving TT for left placement: " + ex.Message);
+                                    _badDocument = true;
+                                    _badCount++;
+                                    return;
+                                }
+                            }
+
+                            // Верх занят — пробуем слева
                             if ((format.VerticalOrientation && (format.Format == ksDocumentFormatEnum.ksFormatA4 ||
                                                                 format.Format == ksDocumentFormatEnum.ksFormatA3)))
                             {
@@ -576,11 +733,13 @@ public partial class MainWindow : Window
                 }
                 catch (Exception ex)
                 {
+                    // Любая ошибка логики — просто логируем
                     Console.WriteLine(ex);
                 }
             }
             else // если тт нет то проверяю просто
             {
+                // TechnicalDemand отсутствует — проверяем только зоны размещения
                 for (int i = 0; i < 10; i++)
                 {
                     free_place = Check_pos(x - 188 + (size / 10) * i, 82, document2D1);
@@ -591,12 +750,14 @@ public partial class MainWindow : Window
                 Console.WriteLine("TT not in doc, top pos" + free_place);
                 if (free_place) // над рамкой
                 {
+                    // Верх свободен — ставим штамп
                     Console.WriteLine("Free stamp top. TT xz");
                     ins.SetPlacement(x - 188 + size / 2, 82, 0, false);
                     ins.Update();
                 }
                 else // слева от рамки
                 {
+                    // Верх занят — пробуем слева
                     if ((format.VerticalOrientation && (format.Format == ksDocumentFormatEnum.ksFormatA4 ||
                                                         format.Format == ksDocumentFormatEnum.ksFormatA3)))
                     {
@@ -615,12 +776,14 @@ public partial class MainWindow : Window
                     Console.WriteLine("TT not in doc, left pos" + free_place);
                     if (free_place)
                     {
+                        // Лево свободно — ставим штамп
                         Console.WriteLine("Left stamp");
                         ins.SetPlacement(x - x_center, 16, 0, false);
                         ins.Update();
                     }
                     else
                     {
+                        // Нет доступных зон
                         _badDocument = true;
                         _badCount++;
                     }
@@ -629,6 +792,7 @@ public partial class MainWindow : Window
         }
         else
         {
+            // Авторазмещение выключено — используем стандартную верхнюю позицию
             ins.SetPlacement(x - 190 + size / 2, 82, 0, false);
             ins.Update();
         }
@@ -636,16 +800,19 @@ public partial class MainWindow : Window
 
     public void Set_text_stamp(IApplication app, IKompasDocument kompasDocument, string[] case_text)
     {
-        var format = kompasDocument.LayoutSheets[0];
+        var layotSheets = kompasDocument.LayoutSheets[0];
+        layotSheets.LayoutStyleNumber = 16;
+        layotSheets.Update();
         Console.WriteLine("Stamp");
         if (case_text[0] != null || case_text[1] != null || case_text[2] != null)
         {
             for (int i = 0; i < 3; i++)
             {
                 if (case_text[i] == "") continue;
-                var text = format.Stamp.Text[id_stamp[i]];
+                var text = layotSheets.Stamp.Text[id_stamp[i]];
                 text.Clear();
                 var textLine = text.Add();
+                textLine.Align = (ksAlignEnum)0;
                 var textItem = textLine.Add();
                 textItem.Str = case_text[i];
             }
@@ -653,7 +820,7 @@ public partial class MainWindow : Window
 
         if (add_stamp.IsChecked == true)
         {
-            var text = format.Stamp.Text[9];
+            var text = layotSheets.Stamp.Text[9];
             text.Clear();
             if (_stamps.TryGetValue(_target.ToString(), out var lines))
             {
@@ -665,11 +832,18 @@ public partial class MainWindow : Window
             }
         }
 
-        format.Stamp.Update();
+        layotSheets.Stamp.Update();
     }
 
-    public void Set_sign(IApplication app, IKompasDocument2D kompasDocument2D)
+    public void Set_sign(IApplication app, IKompasDocument kompasDocument)
     {
+        if (kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentSpecification)
+        {
+            SavePDF_spec(kompasDocument);
+            return;
+        }
+
+        IKompasDocument2D kompasDocument2D = (IKompasDocument2D)kompasDocument;
         int[] y = { 29, 24, 9 };
         var view_manager = kompasDocument2D.ViewsAndLayersManager;
         var Views = view_manager.Views;
@@ -699,12 +873,26 @@ public partial class MainWindow : Window
         }
     }
 
-    private static void SavePDF(IKompasDocument kompasDocument)
+    private void SavePDF(IKompasDocument kompasDocument)
     {
-        string outDir = Path.Combine(kompasDocument.Path, "Чертежи в pdf");
-        Directory.CreateDirectory(outDir);
-        var local_path = kompasDocument.Path + "\\Чертежи в pdf\\" +
-                         Path.GetFileNameWithoutExtension(kompasDocument.Name) + ".pdf";
-        kompasDocument.SaveAs(local_path);
+        if (kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentSpecification)
+        {
+            SavePDF_spec(kompasDocument);
+            return;
+        }
+
+        if (_badDocument == false)
+        {
+            string outDir = Path.Combine(kompasDocument.Path, "Чертежи в pdf");
+            Directory.CreateDirectory(outDir);
+            var local_path = kompasDocument.Path + "\\Чертежи в pdf\\" +
+                             Path.GetFileNameWithoutExtension(kompasDocument.Name) + ".pdf";
+            kompasDocument.SaveAs(local_path);
+        }
+
+        IKompasDocument2D kompasDocument2D = (IKompasDocument2D)kompasDocument;
+        var Views = kompasDocument2D.ViewsAndLayersManager.Views;
+        var signView = Views.View["Подписи"];
+        signView?.Delete();
     }
 }

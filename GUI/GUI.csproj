@@ -25,6 +25,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </Content>
+    <PackageReference Include="PDFsharp" Version="6.2.1" />
     <Reference Include="HeagBoKaT">
         <HintPath>\DLL\HeagBoKaT.dll</HintPath>
       </Reference>
