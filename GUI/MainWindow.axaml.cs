@@ -43,7 +43,7 @@ public partial class MainWindow : Window
                 "KompasTweaker");
             string settingsPath = Path.Combine(localFolder, "settings.json");
             string json = File.ReadAllText(settingsPath);
-            var config = JsonSerializer.Deserialize<ConfgiSettings>(json);
+            var config = JsonSerializer.Deserialize<ConfigSettings>(json);
             add_stamp.IsChecked = config?.add_stamp ?? false;
             sign_stamp.IsChecked = config?.sign_stamp ?? false;
             saved_pdf.IsChecked = config?.saved_pdf ?? false;
@@ -73,7 +73,7 @@ public partial class MainWindow : Window
             Directory.CreateDirectory(localFolder);
             string settingsPath = Path.Combine(localFolder, "settings.json");
 
-            var cfg = new ConfgiSettings
+            var cfg = new ConfigSettings
             {
                 add_stamp = add_stamp.IsChecked == true,
                 sign_stamp = sign_stamp.IsChecked == true,
@@ -95,7 +95,20 @@ public partial class MainWindow : Window
     {
         try
         {
-            string json = File.ReadAllText("Assets\\config.json");
+            string localFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "KompasTweaker");
+            Directory.CreateDirectory(localFolder);
+
+            string configPath = Path.Combine(localFolder, "config.json");
+            string defaultConfigPath = Path.Combine(AppContext.BaseDirectory, "Assets", "config.json");
+
+            // если файла нет — копируем из Assets
+            if (!File.Exists(configPath) && File.Exists(defaultConfigPath))
+            {
+                File.Copy(defaultConfigPath, configPath);
+            }
+
+            string json = File.ReadAllText(configPath);
             var config = JsonSerializer.Deserialize<ConfigName>(json);
             if (config?.names != null)
             {
@@ -139,13 +152,15 @@ public partial class MainWindow : Window
 
     void Radiobutton_add_click(object? sender, RoutedEventArgs e)
     {
-        var path = AppContext.BaseDirectory + "Assets\\config.json";
+        string localFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "KompasTweaker");
+        string path = Path.Combine(localFolder, "config.json");
         Console.WriteLine(path);
         Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
     }
 
 
-    private class ConfgiSettings
+    private class ConfigSettings
     {
         public bool? add_stamp { get; set; }
         public bool? sign_stamp { get; set; }
@@ -286,6 +301,7 @@ public partial class MainWindow : Window
 
     private void Button_Click(object? sender, RoutedEventArgs e)
     {
+        LoadNames();
         button_run.IsEnabled = false;
         var addStamp = add_stamp.IsChecked == true;
         var needSign = sign_stamp.IsChecked == true;
