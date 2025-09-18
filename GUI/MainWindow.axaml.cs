@@ -221,115 +221,14 @@ public partial class MainWindow : Window
         }
     }
 
-    // void Test_button_click(object? sender, RoutedEventArgs e)
-    // {
-    //     IApplication app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
-    //     IKompasDocument kompasDocument = app.ActiveDocument;
-    //     IKompasDocument2D kompasDocument2D = (IKompasDocument2D)kompasDocument;
-    //     IKompasDocument2D1 document2D1 = (IKompasDocument2D1)kompasDocument2D;
-    //     double x = kompasDocument2D.LayoutSheets[0].Format.FormatWidth;
-    //     IDrawingDocument drawing = (IDrawingDocument)kompasDocument2D;
-    //     TechnicalDemand technicalDemand = drawing.TechnicalDemand;
-    //     IText textTechnical = technicalDemand.Text;
-    //     bool moved_tt = false;
-    //     bool free_place = false;
-    //     if ((bool)auto_place.IsChecked)
-    //     {
-    //         if (technicalDemand != null)
-    //         {
-    //             try
-    //             {
-    //                 double[] technicalPos = (double[])technicalDemand.BlocksGabarits;
-    //                 for (int i = 0; i < technicalPos.Length; i++)
-    //                 {
-    //                     Console.WriteLine(i + ":" + technicalPos[i]);
-    //                 }
-    //                 if (technicalPos[0] >= x - 190 && technicalPos[1] >= 71 && technicalPos[1] <= 96) // проверяю если тт над рамкой иначе проверить свободное место над рамкой
-    //                 {
-    //                     Console.WriteLine("Orientir top");
-    //                     for (int i = 0; i < 10; i++) // проверяю верхнюю границу
-    //                     {
-    //                         if (technicalPos[1] <= 85)
-    //                         {
-    //                             technicalPos[1] = 85;
-    //                         }
-    //                         free_place = Check_pos(technicalPos[0] + 18 * i, technicalPos[1] + technicalDemand.Text.Count * 7 + 2, document2D1);
-
-    //                         Console.WriteLine(i + ":" + free_place + "|" + (technicalPos[0] + 18 * i) + ":" + (technicalPos[1] + technicalDemand.Text.Count * 7 + 2));
-    //                         if (!free_place)
-    //                         {
-    //                             moved_tt = true;
-    //                             break;
-    //                         }
-    //                     }
-    //                     if (!moved_tt)
-    //                     {
-    //                         Console.WriteLine("Move");
-    //                         technicalDemand.BlocksGabarits = new double[4] { technicalPos[0], technicalPos[1] + 12, technicalPos[2], technicalPos[1] + technicalDemand.Text.Count * 7 + 22 };
-    //                         technicalDemand.Update();
-    //                         moved_tt = true;
-
-    //                     }
-    //                     else
-    //                     {
-    //                         Console.WriteLine("Top in collision, dont move, checked left");
-    //                         double x_center = _target switch { "VOL" => 253, "SHU" => 242, "QAR" => 254 };
-    //                         double size = _target switch { "VOL" => 116, "SHU" => 93, "QAR" => 118 };
-    //                         for (int i = 0; i < 10; i++)
-    //                         {
-    //                             free_place = Check_pos(x - 190 - size + (size / 10) * i, 21, document2D1);
-    //                             Console.WriteLine(free_place + ":" + (x - 190 - size + size / 10));
-    //                             if (!free_place) break;
-    //                         }
-    //                         Console.WriteLine(free_place);
-    //                         if (free_place)
-    //                         {
-    //                             Console.WriteLine("Left stamp");
-    //                         }
-
-    //                     }
-
-    //                 }
-    //                 else
-    //                 {
-    //                     double size = _target switch { "VOL" => 116, "SHU" => 93, "QAR" => 118 };
-    //                     for (int i = 0; i < 10; i++)
-    //                     {
-    //                         free_place = Check_pos(x - 190 + (size / 10) * i, 82, document2D1);
-    //                         Console.WriteLine(free_place + ":" + (x - 190 + size / 10));
-    //                         if (!free_place) break;
-    //                     }
-    //                     Console.WriteLine(free_place);
-    //                     if (free_place)
-    //                     {
-    //                         Console.WriteLine("Free stamp top. TT xz");
-    //                     }
-    //                 }
-
-
-    //             }
-    //             catch (Exception ex)
-    //             {
-    //                 Console.WriteLine(ex);
-    //             }
-    //         }
-    //         else
-    //         {
-    //             double size = _target switch { "VOL" => 116, "SHU" => 93, "QAR" => 118 };
-    //             for (int i = 0; i < 10; i++)
-    //             {
-    //                 free_place = Check_pos(x - 190 + (size / 10) * i, 82, document2D1);
-    //                 Console.WriteLine(free_place + ":" + (x - 190 + size / 10));
-    //                 if (!free_place) break;
-    //             }
-    //             Console.WriteLine(free_place);
-    //             if (free_place)
-    //             {
-    //                 Console.WriteLine("Free stamp top. TT xz");
-    //             }
-    //         }
-    //     }
-    // }
+    void Test_button_click(object? sender, RoutedEventArgs e)
+    {
+        IApplication app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
+        IKompasDocument kompasDocument = app.ActiveDocument;
+        LayoutSheets layoutSheets = kompasDocument.LayoutSheets;
+        Console.WriteLine(layoutSheets[0].LayoutStyleNumber);
+        Console.WriteLine(layoutSheets.ItemByNumber[0].SheetType);
+    }
 
     private void Button_Click(object? sender, RoutedEventArgs e)
     {
@@ -382,13 +281,6 @@ public partial class MainWindow : Window
                     kompasDocument.Close((DocumentCloseOptions)1);
                     continue;
                 }
-
-                // if (kompasDocument.Type == KompasAPIObjectTypeEnum.ksObjectSpecificationDocument)
-                // {
-                //     Set_text_stamp(app, kompasDocument, case_text);
-                //     SavePDF_spec(kompasDocument);
-                //     continue;
-                // }
 
 
                 if (addStamp)
@@ -527,11 +419,17 @@ public partial class MainWindow : Window
         // Предопределённые смещения центра и ширина для разных видов штампа
         double x_center = _target switch
         {
-            Target.VOL => 250, Target.SHU => 238, Target.QAR => 252, _ => throw new NotImplementedException()
+            Target.VOL => 250,
+            Target.SHU => 238,
+            Target.QAR => 252,
+            _ => throw new NotImplementedException()
         };
         double size = _target switch
         {
-            Target.VOL => 116, Target.SHU => 95, Target.QAR => 118, _ => throw new NotImplementedException()
+            Target.VOL => 116,
+            Target.SHU => 95,
+            Target.QAR => 118,
+            _ => throw new NotImplementedException()
         };
         Console.WriteLine(technicalDemand.IsCreated);
         if (auto_paced_stamp)
@@ -801,7 +699,10 @@ public partial class MainWindow : Window
     public void Set_text_stamp(IApplication app, IKompasDocument kompasDocument, string[] case_text)
     {
         var layotSheets = kompasDocument.LayoutSheets[0];
-        layotSheets.LayoutStyleNumber = 16;
+        if (layotSheets.LayoutStyleNumber == 16)
+        {
+            layotSheets.LayoutStyleNumber = 16;
+        }
         layotSheets.Update();
         Console.WriteLine("Stamp");
         if (case_text[0] != null || case_text[1] != null || case_text[2] != null)
