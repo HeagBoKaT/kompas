@@ -7,10 +7,10 @@
         x:Class="GUI.MainWindow"
         Title="Kompas Tweaker"
         Width="280"
-        Height="540"
-        MinHeight="540"
+        Height="500"
+        MinHeight="500"
         MinWidth="280"
-        MaxHeight="540"
+        MaxHeight="500"
         MaxWidth="280"
         WindowStartupLocation="CenterScreen"
         x:Name="mainWindow"
@@ -130,10 +130,12 @@
                     <CheckBox HorizontalAlignment="Center" Grid.Column="1" x:Name="close_doc" Content="Закрывать документ" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
             </Grid>
             <Button HorizontalAlignment="Center" Grid.Row="5" x:Name="button_run" Content="Холсим ❤" Click="Button_Click" Margin="10" Background="#33acca" CornerRadius="12"></Button>
-            <ProgressBar Grid.Row="6" x:Name="progressBar" Minimum="0" Maximum="100" Height="8" Foreground="#33acca"/>   
-            <CheckBox Grid.Row="7" x:Name="silentCheckBox" Content="Beta silent" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
-            <Button Grid.Row="8" x:Name="button_test" Content="test" Click="Test_button_click"/>
-
+            <ProgressBar Grid.Row="6" x:Name="progressBar" Minimum="0" Maximum="100" Height="8" Foreground="#33acca"/>
+            <Grid Grid.Row="7" ColumnDefinitions="1*,1*">
+                <CheckBox Grid.Column="0" x:Name="silentCheckBox" Content="Beta silent" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
+				<!-- <Button Grid.Column="1" HorizontalAlignment="Right" x:Name="button_test" Content="test" Click="Test_button_click"/>-->
+				
+            </Grid>
     </Grid>
 </StackPanel>
 </Window>

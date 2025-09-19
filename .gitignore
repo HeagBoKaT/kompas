@@ -2,3 +2,5 @@
 .idea/
 GUI/bin/
 GUI/obj/
+.vs/
+GUI/.vs/
