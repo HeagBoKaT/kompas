@@ -1,0 +1,129 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="GUI.Drawing">
+
+    <StackPanel x:Name="Stack">
+    <Grid Margin="4,4,4,4" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            </Grid.RowDefinitions>
+            <Border Grid.Row="0" BorderBrush="#33acca" BorderThickness="1" CornerRadius="12" Width="272">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" Margin="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="Разраб" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="36,0,0,0"/>
+                <ComboBox Grid.Column="1" x:Name="name1" Width="120" CornerRadius="6">
+                    </ComboBox>
+                </Grid>
+                    <Grid Grid.Row="1" Margin="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Проверил" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="36,0,0,0"/>
+                    <ComboBox Grid.Column="1" x:Name="name2" Width="120" CornerRadius="6">
+                        </ComboBox>
+                </Grid>
+                    <Grid Grid.Row="2" Margin="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Н. контр" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="36,0,0,0"/>
+                    <ComboBox Grid.Column="1" x:Name="name3" Width="120" CornerRadius="6">
+                        </ComboBox>
+                </Grid>
+            </Grid>    
+            </Border>
+            <Border Margin="0,10,0,0" Grid.Row="1" BorderBrush="#33acca" BorderThickness="1" CornerRadius="12" Width="272">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Margin="0,4,0,0" Grid.Row="0" HorizontalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+                            <CheckBox x:Name="add_stamp" Content="Добавить штамп" Margin="2,2,32,2" Width="160" Grid.Column="0" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"/>
+                            <CheckBox x:Name="auto_place" Content="Auto" Margin="2" Grid.Column="1" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"/>
+                        </Grid>
+                    <Grid  Grid.Row="1" HorizontalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+                        <RadioButton Margin="8" x:Name="rbVol" GroupName="Target" Tag="VOL" Content="VOL" Checked="RadioButton_Checked" Grid.Column="0">
+                            <RadioButton.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Добавить" Click="Radiobutton_add_click"/>
+                                </ContextMenu>
+                            </RadioButton.ContextMenu>
+                            </RadioButton>
+                        <RadioButton Margin="8" x:Name="rbShu" GroupName="Target" Tag="SHU" Content="SHU" Checked="RadioButton_Checked" Grid.Column="1">
+                            <RadioButton.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Добавить" Click="Radiobutton_add_click"/>
+                                </ContextMenu>
+                            </RadioButton.ContextMenu>
+                            </RadioButton>
+                        <RadioButton Margin="8" x:Name="rbQar" GroupName="Target" Tag="QAR" Content="QAR" Checked="RadioButton_Checked" Grid.Column="2">
+                            <RadioButton.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Добавить" Click="Radiobutton_add_click"/>
+                                </ContextMenu>
+                            </RadioButton.ContextMenu>
+                            </RadioButton>
+                        </Grid>
+                    </Grid>
+                </Border>
+            
+            <CheckBox HorizontalAlignment="Center" Grid.Row="2" x:Name="sign_stamp" Content="Подписать" IsChecked="False" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                    <CheckBox HorizontalAlignment="Center" Grid.Column="0" x:Name="saved_pdf" Content="Сохранить pdf" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
+                    <CheckBox HorizontalAlignment="Center" Grid.Column="1" x:Name="close_doc" Content="Закрывать документ" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
+            </Grid>
+            <Button HorizontalAlignment="Center" Grid.Row="5" x:Name="button_run" Content="Холсим ❤" Click="Button_Click" Margin="10" Background="#33acca" CornerRadius="12"></Button>
+            <ProgressBar Grid.Row="6" x:Name="progressBar" Minimum="0" Maximum="100" Height="8" Foreground="#33acca"/>
+            <Grid Grid.Row="7" ColumnDefinitions="1*,1*">
+                <CheckBox Grid.Column="0" x:Name="silentCheckBox" Content="Beta silent" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
+				<Grid Grid.Column="1" ColumnDefinitions="1*,1*" VerticalAlignment="Center">
+                    <CheckBox Grid.Column="0" x:Name="saveOldVersion" HorizontalAlignment="Right" Checked="SaveOldVersion_OnChecked" Unchecked="SaveOldVersion_OnUnchecked"></CheckBox>
+                    <ComboBox x:Name="oldVersion" Grid.Column="1" IsEnabled="False" SelectedIndex="1">
+                        <ComboBoxItem Content="21"></ComboBoxItem>
+                        <ComboBoxItem Content="22"></ComboBoxItem>
+                        <ComboBoxItem Content="23"></ComboBoxItem>
+                    </ComboBox>
+                </Grid>
+            </Grid>
+            <!-- <Button Grid.Row="8" HorizontalAlignment="Right" x:Name="button_test" Content="test" Click="Test_button_click"/> -->
+
+    </Grid>
+</StackPanel>
+</UserControl>

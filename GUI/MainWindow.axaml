@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:gui="clr-namespace:GUI"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="250"
         Icon="/Assets/icon.ico"
         x:Class="GUI.MainWindow"
@@ -18,15 +19,7 @@
 
 
 <StackPanel x:Name="Stack">
-<DockPanel>
-    <Menu DockPanel.Dock="Top">
-        <MenuItem Header="_Файл"/>
-        <MenuItem Header="_Настройки"/>
-        <MenuItem Header="_Инфо"/>
-    </Menu>
-    <TextBlock/>
-</DockPanel>
-    <Grid Margin="4,-12,4,4" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <Grid Margin="4,4,4,4" HorizontalAlignment="Center" VerticalAlignment="Center">
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
@@ -36,8 +29,8 @@
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
-             <RowDefinition Height="1*"/>
-             <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
             </Grid.RowDefinitions>
             <Border Grid.Row="0" BorderBrush="#33acca" BorderThickness="1" CornerRadius="12" Width="272">
             <Grid>
@@ -133,9 +126,17 @@
             <ProgressBar Grid.Row="6" x:Name="progressBar" Minimum="0" Maximum="100" Height="8" Foreground="#33acca"/>
             <Grid Grid.Row="7" ColumnDefinitions="1*,1*">
                 <CheckBox Grid.Column="0" x:Name="silentCheckBox" Content="Beta silent" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
-				<!-- <Button Grid.Column="1" HorizontalAlignment="Right" x:Name="button_test" Content="test" Click="Test_button_click"/>-->
-				
+				<Grid Grid.Column="1" ColumnDefinitions="1*,1*" VerticalAlignment="Center">
+                    <CheckBox Grid.Column="0" x:Name="saveOldVersion" HorizontalAlignment="Right" Checked="SaveOldVersion_OnChecked" Unchecked="SaveOldVersion_OnUnchecked"></CheckBox>
+                    <ComboBox x:Name="oldVersion" Grid.Column="1" IsEnabled="False" SelectedIndex="1">
+                        <ComboBoxItem Content="21"></ComboBoxItem>
+                        <ComboBoxItem Content="22"></ComboBoxItem>
+                        <ComboBoxItem Content="23"></ComboBoxItem>
+                    </ComboBox>
+                </Grid>
             </Grid>
+            <!-- <Button Grid.Row="8" HorizontalAlignment="Right" x:Name="button_test" Content="test" Click="Test_button_click"/> -->
+
     </Grid>
 </StackPanel>
 </Window>

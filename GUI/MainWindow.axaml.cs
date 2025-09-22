@@ -1,20 +1,21 @@
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Kompas6Constants;
 using KompasAPI7;
 using System.Text.Json;
-using Avalonia.Styling;
-using Avalonia.Themes.Fluent;
+using System.Xml.Linq;
 using PdfSharp.Pdf.IO;
 using PdfSharp.Drawing;
 using Microsoft.Win32;
-using Avalonia;
 using Avalonia.Media;
+using Kompas6API5;
 
 namespace GUI;
 
@@ -217,35 +218,56 @@ public partial class MainWindow : Window
         }
     }
 
-    private void Test_button_click(object? sender, RoutedEventArgs e)
-    {
-        IApplication app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
-        IKompasDocument kompasDocument = app.ActiveDocument;
-        
-        FindObjectDetect.CheckFreePlaceForTT(kompasDocument);
-        
-
-
-    }
-
-    //private void CheckFreePlaceForTT(IKompasDocument kompasDocument)
-    //{
-    //    TechnicalDemand demand = ((IDrawingDocument)kompasDocument).TechnicalDemand;
-    //    double[] gabarite = (double[])demand.BlocksGabarits;
-    //    IKompasDocument2D1? document2D1 = (IKompasDocument2D1)kompasDocument;
-    //    // отображение координат
-    //    for (int i = 0; i < gabarite.Length; i++)
-    //    {
-    //        Console.WriteLine(i + ":" + gabarite[i]);
-    //    }
-
-    //    if (gabarite.Length > 4)
-    //    {
-    //        Console.WriteLine("Сложное ТТ");
-    //    }
-
-        
-    //}
+    // private void Test_button_click(object? sender, RoutedEventArgs e)
+    // {
+    //     var drawing = new Drawing();
+    //     IApplication app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
+    //     SystemSettings settings = app.SystemSettings; //Интерфейс настроек
+    //     settings.EnablesAddSystemDelimersInMarking = true; // отображение разделителей и спец символов
+    //     IKompasDocument kompasDocument = app.ActiveDocument;
+    //     IPropertyKeeper propertyKeeper = ((IPropertyKeeper)(IKompasDocument2D)kompasDocument); // Интерфейс получения/редактирования значения свойств
+    //     var meta = propertyKeeper.Properties; //Метаданные объекта (позволяет вывести в xml файле не знаю на сколько нужно но там есть отдельный id documentNumber
+    //     IPropertyMng propertyMng = (IPropertyMng)app; // Менеджер свойств
+    //     var properties = propertyMng.GetProperties(kompasDocument); //свойства документа
+    //     var props = ((IEnumerable)properties).Cast<_Property>().ToList(); //приведение к списку свойств
+    //     for (int i = 0; i < props.Count; i++)
+    //     {
+    //         propertyKeeper.GetPropertyValue(props[i], out object value, true, out var source );
+    //         Console.WriteLine($"{source}: {value}");
+    //     }
+    //     //И самое важное
+    //     propertyKeeper.SetPropertyValue(props[0], "VL.39А-SP1.80002878.00.20$|$|$|$|$| $|СБ", false);
+    //
+    //     // propertyKeeper.SetPropertyValue(prope, "VL.39А-SP1.80002878.00.20 ГЧ", false);
+    //     // XDocument doc = XDocument.Parse(properties);
+    //     // XElement? element = doc
+    //     //     .Descendants("property")
+    //     //     .FirstOrDefault(x => (string?)x.Attribute("id") == "documentNumber");
+    //     // Console.WriteLine(element.Attribute("value").Value);
+    //     // element.SetAttributeValue("value", "ГЧ");
+    //     // properties = doc.ToString();
+    //
+    //     // Console.WriteLine(propertyMng);
+    //
+    //
+    //
+    //
+    //     // for (int i=0; i< 1320; i++)
+    //     // {
+    //     //     if (stamp.Text[i].Str != "")
+    //     //     {
+    //     //         Console.WriteLine($"{i}:{stamp.Text[i].Str}");
+    //     //     }
+    //     //     
+    //     // }
+    //
+    //
+    //
+    //
+    //
+    //
+    // }
+    
 
     private void Button_Click(object? sender, RoutedEventArgs e)
     {
@@ -257,6 +279,8 @@ public partial class MainWindow : Window
         var needPdf = saved_pdf.IsChecked == true;
         var auto_paced_stamp = auto_place.IsChecked == true;
         var needClose = close_doc.IsChecked == true;
+        var oldSaved = saveOldVersion.IsChecked == true;
+        var oldVersionValue = ((ComboBoxItem)oldVersion.SelectedItem).Content.ToString();
         bool shouldFillTitle = addStamp
                                || ((name1.SelectedItem as ComboBoxItem)?.Content?.ToString()?.Length > 0
                                    || (name2.SelectedItem as ComboBoxItem)?.Content?.ToString()?.Length > 0
@@ -295,7 +319,7 @@ public partial class MainWindow : Window
                     kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentAssembly ||
                     kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentFragment)
                 {
-                    kompasDocument.Close((DocumentCloseOptions)1);
+                    DocCloseAndSave(kompasDocument, oldSaved, oldVersionValue);
                     continue;
                 }
 
@@ -320,8 +344,12 @@ public partial class MainWindow : Window
                     SavePDF(kompasDocument);
                 }
 
-                if (needClose && !_badDocument) kompasDocument.Close((DocumentCloseOptions)1);
-                progressBar.Value = progressBar.Value + 1;
+                if (needClose && !_badDocument)
+                {
+                    DocCloseAndSave(kompasDocument, oldSaved, oldVersionValue);
+                    progressBar.Value = progressBar.Value + 1;
+                }
+                
             }
         }
         finally
@@ -334,6 +362,21 @@ public partial class MainWindow : Window
 
         sw.Stop();
         Console.WriteLine($"Time: {sw.ElapsedMilliseconds} ms");
+    }
+
+    private void DocCloseAndSave(IKompasDocument kompasDocument, bool oldSaved, string oldVersionValue)
+    {
+        if (!oldSaved)
+        {
+            kompasDocument.Close((DocumentCloseOptions)1);
+        }
+        else
+        {   
+            var path  = Path.Combine(kompasDocument.Path, kompasDocument.Name);
+            var version = oldVersionValue switch { "21" => 27, "22" => 28, "23" => 29 };
+            ((IKompasDocument1)kompasDocument).SaveAsEx(path, version);
+            kompasDocument.Close(0);
+        }
     }
 
 
@@ -811,5 +854,15 @@ public partial class MainWindow : Window
         var Views = kompasDocument2D.ViewsAndLayersManager.Views;
         var signView = Views.View["Подписи"];
         signView?.Delete();
+    }
+
+    private void SaveOldVersion_OnChecked(object? sender, RoutedEventArgs e)
+    {
+        oldVersion.IsEnabled = true;
+    }
+
+    private void SaveOldVersion_OnUnchecked(object? sender, RoutedEventArgs e)
+    {
+        oldVersion.IsEnabled = false;
     }
 }
