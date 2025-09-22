@@ -218,55 +218,125 @@ public partial class MainWindow : Window
         }
     }
 
-    // private void Test_button_click(object? sender, RoutedEventArgs e)
-    // {
-    //     var drawing = new Drawing();
-    //     IApplication app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
-    //     SystemSettings settings = app.SystemSettings; //Интерфейс настроек
-    //     settings.EnablesAddSystemDelimersInMarking = true; // отображение разделителей и спец символов
-    //     IKompasDocument kompasDocument = app.ActiveDocument;
-    //     IPropertyKeeper propertyKeeper = ((IPropertyKeeper)(IKompasDocument2D)kompasDocument); // Интерфейс получения/редактирования значения свойств
-    //     var meta = propertyKeeper.Properties; //Метаданные объекта (позволяет вывести в xml файле не знаю на сколько нужно но там есть отдельный id documentNumber
-    //     IPropertyMng propertyMng = (IPropertyMng)app; // Менеджер свойств
-    //     var properties = propertyMng.GetProperties(kompasDocument); //свойства документа
-    //     var props = ((IEnumerable)properties).Cast<_Property>().ToList(); //приведение к списку свойств
-    //     for (int i = 0; i < props.Count; i++)
-    //     {
-    //         propertyKeeper.GetPropertyValue(props[i], out object value, true, out var source );
-    //         Console.WriteLine($"{source}: {value}");
-    //     }
-    //     //И самое важное
-    //     propertyKeeper.SetPropertyValue(props[0], "VL.39А-SP1.80002878.00.20$|$|$|$|$| $|СБ", false);
-    //
-    //     // propertyKeeper.SetPropertyValue(prope, "VL.39А-SP1.80002878.00.20 ГЧ", false);
-    //     // XDocument doc = XDocument.Parse(properties);
-    //     // XElement? element = doc
-    //     //     .Descendants("property")
-    //     //     .FirstOrDefault(x => (string?)x.Attribute("id") == "documentNumber");
-    //     // Console.WriteLine(element.Attribute("value").Value);
-    //     // element.SetAttributeValue("value", "ГЧ");
-    //     // properties = doc.ToString();
-    //
-    //     // Console.WriteLine(propertyMng);
-    //
-    //
-    //
-    //
-    //     // for (int i=0; i< 1320; i++)
-    //     // {
-    //     //     if (stamp.Text[i].Str != "")
-    //     //     {
-    //     //         Console.WriteLine($"{i}:{stamp.Text[i].Str}");
-    //     //     }
-    //     //     
-    //     // }
-    //
-    //
-    //
-    //
-    //
-    //
-    // }
+    private void Test_button_click(object? sender, RoutedEventArgs e)
+    {
+        var alert = new Alert("e");
+        try
+        {
+            IApplication app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
+            SystemSettings settings = app.SystemSettings; //Интерфейс настроек
+            settings.EnablesAddSystemDelimersInMarking = true; // отображение разделителей и спец символов
+            settings.EnableAddFilesToRecentList = true;
+            IKompasDocument document = app.ActiveDocument;
+            if (document != null)
+            {
+                IKompasDocument2D kompasDocument2D = (IKompasDocument2D)document;
+                IDrawingDocument drawingDocument = (IDrawingDocument)kompasDocument2D;
+                ITechnicalDemand technicalDemand =  drawingDocument.TechnicalDemand;
+                Console.WriteLine(technicalDemand.Text.Str);
+                // string t = technicalDemand.Text.Str;
+                technicalDemand.Update();
+                IViews views = kompasDocument2D.ViewsAndLayersManager.Views;
+                foreach (IView view in views)
+                {
+                    
+                    Console.WriteLine($"__{view.Name}__");
+                    Console.WriteLine($"Число объектов вида: {view.ObjectCount}");
+                    ISymbols2DContainer drawingContainer = (ISymbols2DContainer)view;
+                    var leaders = drawingContainer.Leaders;
+                    foreach (IBaseLeader leader in leaders)
+                    {
+                        Console.WriteLine(leader.Type);
+                        switch (leader.Type)
+                        {
+                            case KompasAPIObjectTypeEnum.ksObjectMarkLeader:
+                            {
+                                Console.WriteLine(((IMarkLeader)leader).Designation.Str);
+                                break;
+                            }
+                            case KompasAPIObjectTypeEnum.ksObjectLeader:
+                            {
+                                Console.WriteLine(((ILeader)leader).TextOnShelf.Str);
+                                technicalDemand.Text.Str = ((ILeader)leader).TextOnShelf.Str;
+                                technicalDemand.Update();
+                                break;
+                            }
+                        }
+                        
+                        // if ((ILeader)leader != null)
+                        // {
+                        //     Console.WriteLine(((ILeader)leader).TextOnBranch.Str);
+                        // }
+                        // if (leader != null)
+                        // {
+                        //     Console.WriteLine(leader.TextOnBranch.Str);
+                        // }
+                        
+                    }
+
+
+
+                }
+                
+
+
+            }
+
+        }
+        catch (Exception ex)
+        {
+            string exMessage = ex.Message;
+            alert = new Alert(exMessage);
+            alert.Show();
+            throw;
+        }
+        
+        //     IApplication app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
+        //     SystemSettings settings = app.SystemSettings; //Интерфейс настроек
+        //     settings.EnablesAddSystemDelimersInMarking = true; // отображение разделителей и спец символов
+        //     IKompasDocument kompasDocument = app.ActiveDocument;
+        //     IPropertyKeeper propertyKeeper = ((IPropertyKeeper)(IKompasDocument2D)kompasDocument); // Интерфейс получения/редактирования значения свойств
+        //     var meta = propertyKeeper.Properties; //Метаданные объекта (позволяет вывести в xml файле не знаю на сколько нужно но там есть отдельный id documentNumber
+        //     IPropertyMng propertyMng = (IPropertyMng)app; // Менеджер свойств
+        //     var properties = propertyMng.GetProperties(kompasDocument); //свойства документа
+        //     var props = ((IEnumerable)properties).Cast<_Property>().ToList(); //приведение к списку свойств
+        //     for (int i = 0; i < props.Count; i++)
+        //     {
+        //         propertyKeeper.GetPropertyValue(props[i], out object value, true, out var source );
+        //         Console.WriteLine($"{source}: {value}");
+        //     }
+        //     //И самое важное
+        //     propertyKeeper.SetPropertyValue(props[0], "VL.39А-SP1.80002878.00.20$|$|$|$|$| $|СБ", false);
+        //
+        //     // propertyKeeper.SetPropertyValue(prope, "VL.39А-SP1.80002878.00.20 ГЧ", false);
+        //     // XDocument doc = XDocument.Parse(properties);
+        //     // XElement? element = doc
+        //     //     .Descendants("property")
+        //     //     .FirstOrDefault(x => (string?)x.Attribute("id") == "documentNumber");
+        //     // Console.WriteLine(element.Attribute("value").Value);
+        //     // element.SetAttributeValue("value", "ГЧ");
+        //     // properties = doc.ToString();
+        //
+        //     // Console.WriteLine(propertyMng);
+        //
+        //
+        //
+        //
+        //     // for (int i=0; i< 1320; i++)
+        //     // {
+        //     //     if (stamp.Text[i].Str != "")
+        //     //     {
+        //     //         Console.WriteLine($"{i}:{stamp.Text[i].Str}");
+        //     //     }
+        //     //     
+        //     // }
+        //
+        //
+        //
+        //
+        //
+        //
+    }
     
 
     private void Button_Click(object? sender, RoutedEventArgs e)
