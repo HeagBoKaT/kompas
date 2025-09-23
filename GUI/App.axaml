@@ -5,7 +5,9 @@
              <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
     <Application.Styles>
+        
         <FluentTheme/>
+        
         <Style Selector="Window">
             <Setter Property="TransparencyLevelHint" Value="Mica, Blur"></Setter>
         </Style>
@@ -40,5 +42,12 @@
             <Setter Property="Stroke" Value="White" />
             <Setter Property="Fill" Value="#33acca" />
         </Style>
+        <Style Selector="TabItem:selected /template/ Border#PART_SelectedPipe">
+            <Setter Property="Background" Value="#33acca" />
+        </Style>
     </Application.Styles>
+             <Application.Resources>
+                 <SolidColorBrush x:Key="BackgroundBrush" Color="#454445"/>
+                 <SolidColorBrush x:Key="KompasBrush" Color="#33acca"/>
+             </Application.Resources>
 </Application>

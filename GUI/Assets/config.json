@@ -1,5 +1,5 @@
 {
-    "names": [
+    "namesForStamp": [
         "",
         "Жуков",
         "Фадеев",
@@ -10,7 +10,7 @@
         "Сапожников",
         "Крюков"
     ],
-    "stamps": {
+    "stampText": {
         "VOL": [
             "CEMENTUM/HOLCIM"
         ],

@@ -3,10 +3,18 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
-             x:Class="GUI.Drawing">
+             x:Class="GUI.Drawing"
+             BorderBrush="#33acca" BorderThickness="0,0,0,2"
+             >
 
-    <StackPanel x:Name="Stack">
-    <Grid Margin="4,4,4,4" HorizontalAlignment="Center" VerticalAlignment="Center">
+
+<DockPanel x:Name="Stack" HorizontalAlignment="Center">
+    <Border DockPanel.Dock="Bottom"  BorderBrush="#33acca" Width="220" Height="50" BorderThickness="2,2,2,0" CornerRadius="8,8,0,0" Margin="0,0,0,-2">
+        <Button HorizontalAlignment="Center" x:Name="ButtonRun" Content="Холсим ❤" Click="Button_Click" Background="{DynamicResource KompasBrush}" CornerRadius="4"></Button>
+    </Border>
+    
+    <StackPanel>
+        <Grid Margin="4,4,4,4" HorizontalAlignment="Center" VerticalAlignment="Center">
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
@@ -19,7 +27,7 @@
             <RowDefinition Height="1*"/>
             <RowDefinition Height="1*"/>
             </Grid.RowDefinitions>
-            <Border Grid.Row="0" BorderBrush="#33acca" BorderThickness="1" CornerRadius="12" Width="272">
+            <Border Grid.Row="0" BorderBrush="#33acca" BorderThickness="1" CornerRadius="12" Width="272" BoxShadow="2 2 5 0 #33acca">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="1*"/>
@@ -55,7 +63,7 @@
                 </Grid>
             </Grid>    
             </Border>
-            <Border Margin="0,10,0,0" Grid.Row="1" BorderBrush="#33acca" BorderThickness="1" CornerRadius="12" Width="272">
+            <Border Margin="0,10,0,0" Grid.Row="1" BorderBrush="#33acca" BorderThickness="1" CornerRadius="12" Width="272" BoxShadow="2 2 5 0 #33acca">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="1*"/>
@@ -66,8 +74,8 @@
                             <ColumnDefinition Width="1*"/>
                             <ColumnDefinition Width="1*"/>
                         </Grid.ColumnDefinitions>
-                            <CheckBox x:Name="add_stamp" Content="Добавить штамп" Margin="2,2,32,2" Width="160" Grid.Column="0" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"/>
-                            <CheckBox x:Name="auto_place" Content="Auto" Margin="2" Grid.Column="1" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"/>
+                            <CheckBox x:Name="AddStampCustom" Content="Добавить штамп" Margin="2,2,32,2" Width="160" Grid.Column="0" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"/>
+                            <CheckBox x:Name="AutoPlaceStamp" Content="Auto" Margin="2" Grid.Column="1" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"/>
                         </Grid>
                     <Grid  Grid.Row="1" HorizontalAlignment="Center">
                         <Grid.ColumnDefinitions>
@@ -75,21 +83,21 @@
                             <ColumnDefinition Width="1*"/>
                             <ColumnDefinition Width="1*"/>
                         </Grid.ColumnDefinitions>
-                        <RadioButton Margin="8" x:Name="rbVol" GroupName="Target" Tag="VOL" Content="VOL" Checked="RadioButton_Checked" Grid.Column="0">
+                        <RadioButton Margin="8" x:Name="RbVol" GroupName="Target" Tag="VOL" Content="VOL" Checked="RadioButton_Checked" Grid.Column="0">
                             <RadioButton.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem Header="Добавить" Click="Radiobutton_add_click"/>
                                 </ContextMenu>
                             </RadioButton.ContextMenu>
                             </RadioButton>
-                        <RadioButton Margin="8" x:Name="rbShu" GroupName="Target" Tag="SHU" Content="SHU" Checked="RadioButton_Checked" Grid.Column="1">
+                        <RadioButton Margin="8" x:Name="RbShu" GroupName="Target" Tag="SHU" Content="SHU" Checked="RadioButton_Checked" Grid.Column="1">
                             <RadioButton.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem Header="Добавить" Click="Radiobutton_add_click"/>
                                 </ContextMenu>
                             </RadioButton.ContextMenu>
                             </RadioButton>
-                        <RadioButton Margin="8" x:Name="rbQar" GroupName="Target" Tag="QAR" Content="QAR" Checked="RadioButton_Checked" Grid.Column="2">
+                        <RadioButton Margin="8" x:Name="RbQar" GroupName="Target" Tag="QAR" Content="QAR" Checked="RadioButton_Checked" Grid.Column="2">
                             <RadioButton.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem Header="Добавить" Click="Radiobutton_add_click"/>
@@ -99,31 +107,25 @@
                         </Grid>
                     </Grid>
                 </Border>
-            
-            <CheckBox HorizontalAlignment="Center" Grid.Row="2" x:Name="sign_stamp" Content="Подписать" IsChecked="False" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
+            <CheckBox HorizontalAlignment="Center" Grid.Row="2" x:Name="SignStamp" Content="Подписать" IsChecked="False" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
             <Grid Grid.Row="3">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"/>
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
-                    <CheckBox HorizontalAlignment="Center" Grid.Column="0" x:Name="saved_pdf" Content="Сохранить pdf" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
-                    <CheckBox HorizontalAlignment="Center" Grid.Column="1" x:Name="close_doc" Content="Закрывать документ" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
+                    <CheckBox HorizontalAlignment="Center" Grid.Column="0" x:Name="SavedPdf" Content="Сохранить pdf" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
+                    <CheckBox HorizontalAlignment="Center" Grid.Column="1" x:Name="CloseDoc" Content="Закрывать документ" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
             </Grid>
-            <Button HorizontalAlignment="Center" Grid.Row="5" x:Name="button_run" Content="Холсим ❤" Click="Button_Click" Margin="10" Background="#33acca" CornerRadius="12"></Button>
-            <ProgressBar Grid.Row="6" x:Name="progressBar" Minimum="0" Maximum="100" Height="8" Foreground="#33acca"/>
             <Grid Grid.Row="7" ColumnDefinitions="1*,1*">
-                <CheckBox Grid.Column="0" x:Name="silentCheckBox" Content="Beta silent" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
-				<Grid Grid.Column="1" ColumnDefinitions="1*,1*" VerticalAlignment="Center">
-                    <CheckBox Grid.Column="0" x:Name="saveOldVersion" HorizontalAlignment="Right" Checked="SaveOldVersion_OnChecked" Unchecked="SaveOldVersion_OnUnchecked"></CheckBox>
-                    <ComboBox x:Name="oldVersion" Grid.Column="1" IsEnabled="False" SelectedIndex="1">
-                        <ComboBoxItem Content="21"></ComboBoxItem>
-                        <ComboBoxItem Content="22"></ComboBoxItem>
-                        <ComboBoxItem Content="23"></ComboBoxItem>
-                    </ComboBox>
-                </Grid>
+                <CheckBox Grid.Column="0" x:Name="SilentCheckBox" Content="Beta silent" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
             </Grid>
-            <!-- <Button Grid.Row="8" HorizontalAlignment="Right" x:Name="button_test" Content="test" Click="Test_button_click"/> -->
-
+            <Button Grid.Row="7" HorizontalAlignment="Right" x:Name="button_test" Content="Fix" Click="Test_button_click"/>
+            
     </Grid>
-</StackPanel>
+    
+    </StackPanel>
+    
+    
+    
+</DockPanel>
 </UserControl>

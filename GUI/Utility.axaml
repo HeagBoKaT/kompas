@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="GUI.Utility"
+             BorderBrush="#33acca" BorderThickness="0,0,0,2"
+             >
+
+    <DockPanel HorizontalAlignment="Center">
+        <!-- Кнопка внизу -->
+        <Border DockPanel.Dock="Bottom" BorderBrush="#33acca" Width="220" Height="50" BorderThickness="2,2,2,0" CornerRadius="8,8,0,0" Margin="0,0,0,-2">
+            <Border >
+                <Grid ColumnDefinitions="1*,Auto">
+                    <Button Grid.Column="0" Content="Пересохранить" CornerRadius="4" Background="{DynamicResource KompasBrush}" Click="Button_OnClick" Margin="8"></Button>
+                    <CheckBox Grid.Column="1" x:Name="SaveAll" Content="Всё" Margin="8" Checked="SaveAll_OnChecked" Unchecked="SaveAll_OnUnchecked"></CheckBox>
+                </Grid>
+            </Border>
+            
+        </Border>
+        <!-- Верхняя часть -->
+        <StackPanel>
+            <Border Padding="4" BoxShadow="2 2 5 0 #33acca" Margin="0,12,0,0" BorderBrush="#33acca" BorderThickness="2" CornerRadius="8">
+                <Grid RowDefinitions="1*,1*" HorizontalAlignment="Center">
+                    <TextBlock Grid.Row="0" Text="Выберите версию" Padding="2" Margin="0,-16,0,0" Background="{DynamicResource BackgroundBrush}"/>
+                    <Grid Grid.Row="1" ColumnDefinitions="Auto,1*" HorizontalAlignment="Center">
+                        <CheckBox x:Name="saveOldVersion"
+                                  Checked="SaveOldVersion_OnChecked"
+                                  Unchecked="SaveOldVersion_OnUnchecked"/>
+                        <ComboBox Grid.Column="1" x:Name="oldVersion" IsEnabled="False" SelectedIndex="1">
+                            <ComboBoxItem Content="21"/>
+                            <ComboBoxItem Content="22"/>
+                            <ComboBoxItem Content="23"/>
+                        </ComboBox>
+                    </Grid>
+                </Grid>
+                
+            </Border>
+        </StackPanel>
+    </DockPanel>
+
+</UserControl>
