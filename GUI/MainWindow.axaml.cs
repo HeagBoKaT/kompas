@@ -220,10 +220,11 @@ public partial class MainWindow : Window
 
     private void Test_button_click(object? sender, RoutedEventArgs e)
     {
-        var alert = new Alert("e");
         try
         {
             IApplication app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
+            app.GetSystemVersion(out int major, out int minor, out int patch, out int revision );
+            Console.WriteLine(major + "." + minor + "." + patch + "." + revision);
             SystemSettings settings = app.SystemSettings; //Интерфейс настроек
             settings.EnablesAddSystemDelimersInMarking = true; // отображение разделителей и спец символов
             settings.EnableAddFilesToRecentList = true;
@@ -234,7 +235,15 @@ public partial class MainWindow : Window
                 IKompasDocument2D kompasDocument2D = (IKompasDocument2D)document;
                 IDrawingDocument drawingDocument = (IDrawingDocument)kompasDocument2D;
                 ITechnicalDemand technicalDemand = drawingDocument.TechnicalDemand;
-                Console.WriteLine(technicalDemand.Text.Count);
+                Console.WriteLine(technicalDemand.Text.Str);
+                if (major == 22)
+                {
+                    while (technicalDemand.Text.Str.IndexOf("^(#31~") != -1)
+                    {
+                        
+                    }
+                }
+                
                 IViews views = kompasDocument2D.ViewsAndLayersManager.Views;
                 int t = 1;
                 string current = "";
@@ -267,15 +276,40 @@ public partial class MainWindow : Window
 
                 technicalDemand.Text.Clear();
                 string tt = "";
+                string end1 = String.Empty;
+                string end2 = String.Empty;
+                int pos4;
+                if (major == 24)
+                {
+                    end1 = ";~";
+                    end2 = ")";
+                    pos4 = 2;
+                }
+                else
+                {
+                    end1 = "~";
+                    end2 = ")";
+                    pos4 = 1;
+                }
+                for (int i = 0; i < result.Count; i++)
+                {
+                            while (result[i].IndexOf("^(#31~") != -1)
+                            {
+                                result[i].Replace("^(#31~", string.Empty);
+                            }
+                }
+                
                 for (int i=0; i < result.Count; i++)
                 {
                     start_pos = 0;
+                    
+                    
                     while ((pos1 = result[i].IndexOf("^(", start_pos)) != -1)
                     {
                         Console.WriteLine(result[i].Length);
-                        int pos2 = result[i].IndexOf(";~", pos1);
-                        string target = result[i].Substring(pos1, pos2 - pos1 + 2);
-                        int pos3 = target.IndexOf(")");
+                        int pos2 = result[i].IndexOf(end1, pos1+8);
+                        string target = result[i].Substring(pos1, pos2 - pos1 + pos4);
+                        int pos3 = target.IndexOf(end2);
                         string insert = target.Substring(0, pos3 + 1);
                         Console.WriteLine($"Позиция: {pos1}");
                         Console.WriteLine($"Что заменяем: {target}");
@@ -349,9 +383,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            string exMessage = ex.Message;
-            alert = new Alert(exMessage);
-            alert.Show();
+            Console.WriteLine(ex);
             throw;
         }
 
