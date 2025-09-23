@@ -135,7 +135,7 @@
                     </ComboBox>
                 </Grid>
             </Grid>
-            <Button Grid.Row="8" HorizontalAlignment="Right" x:Name="button_test" Content="test" Click="Test_button_click"/>
+            <Button Grid.Row="8" HorizontalAlignment="Right" x:Name="button_test" Content="Fix" Click="Test_button_click"/>
 
     </Grid>
 </StackPanel>

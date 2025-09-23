@@ -230,58 +230,122 @@ public partial class MainWindow : Window
             IKompasDocument document = app.ActiveDocument;
             if (document != null)
             {
+                int start_pos = 0;
                 IKompasDocument2D kompasDocument2D = (IKompasDocument2D)document;
                 IDrawingDocument drawingDocument = (IDrawingDocument)kompasDocument2D;
-                ITechnicalDemand technicalDemand =  drawingDocument.TechnicalDemand;
-                Console.WriteLine(technicalDemand.Text.Str);
-                // string t = technicalDemand.Text.Str;
-                technicalDemand.Update();
+                ITechnicalDemand technicalDemand = drawingDocument.TechnicalDemand;
+                Console.WriteLine(technicalDemand.Text.Count);
                 IViews views = kompasDocument2D.ViewsAndLayersManager.Views;
-                foreach (IView view in views)
+                int t = 1;
+                string current = "";
+                int pos1 = 0;
+                var result = new List<string>();
+                for (int i = 0; i < technicalDemand.Text.Count; i++)
                 {
-                    
-                    Console.WriteLine($"__{view.Name}__");
-                    Console.WriteLine($"Число объектов вида: {view.ObjectCount}");
-                    ISymbols2DContainer drawingContainer = (ISymbols2DContainer)view;
-                    var leaders = drawingContainer.Leaders;
-                    foreach (IBaseLeader leader in leaders)
+                    var currentLine = technicalDemand.Text.TextLine[i];
+                    int pos = 0;
+
+                    if (currentLine.Numbering == ksTextNumberingEnum.ksTNumbNumber)
                     {
-                        Console.WriteLine(leader.Type);
-                        switch (leader.Type)
+                        if (!string.IsNullOrEmpty(current))
                         {
-                            case KompasAPIObjectTypeEnum.ksObjectMarkLeader:
-                            {
-                                Console.WriteLine(((IMarkLeader)leader).Designation.Str);
-                                break;
-                            }
-                            case KompasAPIObjectTypeEnum.ksObjectLeader:
-                            {
-                                Console.WriteLine(((ILeader)leader).TextOnShelf.Str);
-                                technicalDemand.Text.Str = ((ILeader)leader).TextOnShelf.Str;
-                                technicalDemand.Update();
-                                break;
-                            }
+                            result.Add(current.Trim());
                         }
-                        
-                        // if ((ILeader)leader != null)
-                        // {
-                        //     Console.WriteLine(((ILeader)leader).TextOnBranch.Str);
-                        // }
-                        // if (leader != null)
-                        // {
-                        //     Console.WriteLine(leader.TextOnBranch.Str);
-                        // }
-                        
+
+                        current = currentLine.Str;
+                    }
+                    else
+                    {
+                        if (current != null)
+                        {
+                            current += " " + currentLine.Str;
+                        }
+                    }
+                }
+                if (current != null && current.Length > 0)
+                    result.Add(current.ToString().Trim());
+
+                technicalDemand.Text.Clear();
+                string tt = "";
+                for (int i=0; i < result.Count; i++)
+                {
+                    start_pos = 0;
+                    while ((pos1 = result[i].IndexOf("^(", start_pos)) != -1)
+                    {
+                        Console.WriteLine(result[i].Length);
+                        int pos2 = result[i].IndexOf(";~", pos1);
+                        string target = result[i].Substring(pos1, pos2 - pos1 + 2);
+                        int pos3 = target.IndexOf(")");
+                        string insert = target.Substring(0, pos3 + 1);
+                        Console.WriteLine($"Позиция: {pos1}");
+                        Console.WriteLine($"Что заменяем: {target}");
+                        Console.WriteLine($"Основа поиска: {insert}");
+                        start_pos = pos2 + 1;
+                        foreach (IView view in views)
+                        {
+                            // Console.WriteLine($"__{view.Name}__");
+                            // Console.WriteLine($"Число объектов вида: {view.ObjectCount}");
+                            ISymbols2DContainer drawingContainer = (ISymbols2DContainer)view;
+                            var leaders = drawingContainer.Leaders;
+                            foreach (IBaseLeader leader in leaders)
+                            {
+                                // Console.WriteLine(leader.Type);
+                                switch (leader.Type)
+                                {
+                                    case KompasAPIObjectTypeEnum.ksObjectMarkLeader:
+                                    {
+
+                                        if (((IMarkLeader)leader).Designation.Str.Contains(insert))
+                                        {
+                                            Console.WriteLine(((IMarkLeader)leader).Designation.Str);
+                                            result[i] = result[i].Replace(target,
+                                                ((IMarkLeader)leader).Designation.Str);
+                                        }
+
+                                        break;
+                                    }
+                                    case KompasAPIObjectTypeEnum.ksObjectLeader:
+                                    {
+                                        if (((ILeader)leader).TextOnShelf.Str.Contains(insert))
+                                        {
+                                            // Console.WriteLine(((ILeader)leader).TextOnShelf.Str);
+                                            result[i] = result[i].Replace(target,
+                                                    ((ILeader)leader).TextOnShelf.Str);
+                                        }
+
+                                        break;
+                                    }
+                                    case KompasAPIObjectTypeEnum.ksObjectPositionLeader:
+                                    {
+                                        if (((IPositionLeader)leader).Positions.Str.Contains(insert))
+                                        {
+                                            // Console.WriteLine(((IPositionLeader)leader).Positions.Str);
+                                            result[i] = result[i].Replace(target, ((IPositionLeader)leader).Positions.Str);
+                                        }
+
+                                        break;
+                                    }
+                                }
+                            }
+
+                        }
                     }
 
-
-
+                    if (i < result.Count - 1)
+                    {
+                        tt += result[i] + "\n";
+                    }
+                    else
+                    {
+                        tt+=result[i];
+                    }
+                    
+                    
                 }
-                
-
-
+                Console.WriteLine(tt);
+                technicalDemand.Text.Str = tt;
+                technicalDemand.Update();
             }
-
         }
         catch (Exception ex)
         {
@@ -290,7 +354,7 @@ public partial class MainWindow : Window
             alert.Show();
             throw;
         }
-        
+
         //     IApplication app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
         //     SystemSettings settings = app.SystemSettings; //Интерфейс настроек
         //     settings.EnablesAddSystemDelimersInMarking = true; // отображение разделителей и спец символов
