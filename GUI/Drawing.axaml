@@ -78,32 +78,7 @@
                             <CheckBox x:Name="AutoPlaceStamp" Content="Auto" Margin="2" Grid.Column="1" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"/>
                         </Grid>
                     <Grid  Grid.Row="1" HorizontalAlignment="Center">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="1*"/>
-                            <ColumnDefinition Width="1*"/>
-                            <ColumnDefinition Width="1*"/>
-                        </Grid.ColumnDefinitions>
-                        <RadioButton Margin="8" x:Name="RbVol" GroupName="Target" Tag="VOL" Content="VOL" Checked="RadioButton_Checked" Grid.Column="0">
-                            <RadioButton.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="Добавить" Click="Radiobutton_add_click"/>
-                                </ContextMenu>
-                            </RadioButton.ContextMenu>
-                            </RadioButton>
-                        <RadioButton Margin="8" x:Name="RbShu" GroupName="Target" Tag="SHU" Content="SHU" Checked="RadioButton_Checked" Grid.Column="1">
-                            <RadioButton.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="Добавить" Click="Radiobutton_add_click"/>
-                                </ContextMenu>
-                            </RadioButton.ContextMenu>
-                            </RadioButton>
-                        <RadioButton Margin="8" x:Name="RbQar" GroupName="Target" Tag="QAR" Content="QAR" Checked="RadioButton_Checked" Grid.Column="2">
-                            <RadioButton.ContextMenu>
-                                <ContextMenu>
-                                    <MenuItem Header="Добавить" Click="Radiobutton_add_click"/>
-                                </ContextMenu>
-                            </RadioButton.ContextMenu>
-                            </RadioButton>
+                        <ComboBox SelectionChanged="TargetBox_OnSelectionChanged"  x:Name="TargetBox" Margin="4" CornerRadius="6" Width="90"></ComboBox>
                         </Grid>
                     </Grid>
                 </Border>
@@ -120,7 +95,7 @@
                 <CheckBox Grid.Column="0" x:Name="SilentCheckBox" Content="Beta silent" Margin="10" Checked="OnAnyToggleChanged" Unchecked="OnAnyToggleChanged"></CheckBox>
             </Grid>
             <Button Grid.Row="7" HorizontalAlignment="Right" x:Name="button_test" Content="Fix" Click="Test_button_click"/>
-            
+            <!-- <Button Content="x" Click="Button_OnClick"></Button> -->
     </Grid>
     
     </StackPanel>

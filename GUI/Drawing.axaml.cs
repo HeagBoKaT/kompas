@@ -3,31 +3,34 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Kompas6Constants;
 using KompasAPI7;
 using System.Text.Json;
-using System.Xml.Linq;
 using PdfSharp.Pdf.IO;
 using PdfSharp.Drawing;
-using Microsoft.Win32;
-using Avalonia.Media;
-using Kompas6API5;
 
 namespace GUI;
 
-enum TargetNum
-{
-    VOL,
-    SHU,
-    QAR
-}
+
 
 public partial class Drawing : UserControl
 {
+
+
+    private readonly Dictionary<string, (double xCenter, double size)> _stampParams = new()
+    {
+        ["VOL"] = (250, 116),
+        ["SHU"] = (238, 95),
+        ["QAR"] = (252, 118),
+        ["FER"] = (238, 95),
+        ["VOS"] = (238, 95)
+    };
+    
     List<int> id_stamp = new List<int>() { 110, 111, 114 };
-    private TargetNum _target = TargetNum.VOL;
+    private string? _target = "SHU";
     private bool _isLoading = false;
     private Dictionary<string, List<string>> _stamps = new();
     private bool _badDocument = false;
@@ -61,10 +64,20 @@ public partial class Drawing : UserControl
             AutoPlaceStamp.IsChecked = AutoPlaceStampStatus;
             CloseDoc.IsChecked = CloseDocStatus;
             SilentCheckBox.IsChecked = SilentCheckBoxStatus;
-            if (!Enum.TryParse(Target, out _target)) _target = TargetNum.SHU;
-            RbVol.IsChecked = _target == TargetNum.VOL;
-            RbShu.IsChecked = _target == TargetNum.SHU;
-            RbQar.IsChecked = _target == TargetNum.QAR;
+            var items = TargetBox.Items.Cast<object>()
+            .FirstOrDefault(x =>
+                (x as string) == Target ||
+                (x as ComboBoxItem)?.Content?.ToString() == Target);
+            if (items != null)
+            {
+                TargetBox.SelectedItem = items;
+            }
+            else
+            {
+                TargetBox.SelectedItem = 0;
+            }
+            
+
         }
         catch (Exception ex)
         {
@@ -86,7 +99,7 @@ public partial class Drawing : UserControl
             AutoPlaceStampStatus = AutoPlaceStamp.IsChecked == true;
             CloseDocStatus = CloseDoc.IsChecked == true;
             SilentCheckBoxStatus = SilentCheckBox.IsChecked == true;
-            Target = _target.ToString();
+            Target = TargetBox.SelectionBoxItem.ToString() ?? "SHU";
             SaveAndLoadConfig.SaveSettingConfig();
             
         }
@@ -126,6 +139,14 @@ public partial class Drawing : UserControl
                 }
             }
 
+            if (config?.targetBoxName != null)
+            {
+                foreach (var n in config.targetBoxName)
+                {
+                    TargetBox.Items.Add(new ComboBoxItem { Content = n });
+                }
+            }
+
             if (config?.stampText != null)
             {
                 _stamps = config.stampText;
@@ -137,39 +158,50 @@ public partial class Drawing : UserControl
             _logger?.Error(ex.Message);
         }
     }
-
+    private void TargetBox_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        SaveState();
+        var t = TargetBox.SelectedItem as ComboBoxItem;
+        if (t != null)
+        {
+            switch (t.Content)
+            {
+                case "FER":
+                {
+                    _target = "SHU";
+                    break;
+                }
+                case "VOS":
+                {
+                    _target = "SHU";
+                    break;
+                }
+                default:
+                {
+                    _target = t.Content.ToString();
+                    break;
+                }
+            }
+        }
+        
+        
+    }
+    
+    private void Button_OnClick(object? sender, RoutedEventArgs e)
+    {
+        _logger.Info("ПУПУПУ");
+    }
     private void OnAnyToggleChanged(object? sender, RoutedEventArgs e)
     {
         if (_isLoading) return; // во время загрузки не сохраняем
         SaveState();
     }
 
-    void RadioButton_Checked(object? sender, RoutedEventArgs e)
-    {
-        if (sender is RadioButton rb && rb.IsChecked == true)
-        {
-            var tag = rb.Tag?.ToString() ?? "VOL";
-            if (!Enum.TryParse<TargetNum>(tag, out var parsed)) parsed = TargetNum.VOL;
-            _target = parsed;
-            if (_isLoading)
-                return;
-            SaveState();
-        }
-    }
-
-    void Radiobutton_add_click(object? sender, RoutedEventArgs e)
-    {
-        string localFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "KompasTweaker");
-        string path = Path.Combine(localFolder, "config.json");
-        // Console.WriteLine(path);
-        Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
-    }
-
     private class ConfigName
     {
         public List<string>? namesForStamp { get; set; }
         public Dictionary<string, List<string>>? stampText { get; set; }
+        public List<string>? targetBoxName { get; set; }
     }
 
     bool Check_pos(double x, double y, IKompasDocument2D1 document2D1)
@@ -197,10 +229,10 @@ public partial class Drawing : UserControl
     {
         try
         {   
-            _logger?.Info("Старт работы исправления ТТ");
+            _logger.Info("Старт работы исправления ТТ");
             IApplication app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
             app.GetSystemVersion(out int major, out int minor, out int patch, out int revision );
-            Console.WriteLine(major + "." + minor + "." + patch + "." + revision);
+            _logger?.Info($"Version: {major}.{minor}.{patch}.{revision}");
             SystemSettings settings = app.SystemSettings; //Интерфейс настроек
             settings.EnablesAddSystemDelimersInMarking = true; // отображение разделителей и спец символов
             settings.EnableAddFilesToRecentList = true;
@@ -213,7 +245,7 @@ public partial class Drawing : UserControl
                 IKompasDocument2D kompasDocument2D = (IKompasDocument2D)document;
                 IDrawingDocument drawingDocument = (IDrawingDocument)kompasDocument2D;
                 ITechnicalDemand technicalDemand = drawingDocument.TechnicalDemand;
-                Console.WriteLine(technicalDemand.Text.Str);
+                _logger?.Info($"technicalDemand.Text.Str: {technicalDemand.Text.Str}");
                 IViews views = kompasDocument2D.ViewsAndLayersManager.Views;
                 string current = "";
                 int pos1 = 0;
@@ -275,24 +307,24 @@ public partial class Drawing : UserControl
                     
                     while ((pos1 = result[i].IndexOf("^(", start_pos)) != -1)
                     {
-                        Console.WriteLine(result[i].Length);
+                        _logger.Info($"result[i].Length: {result[i].Length}");
                         int pos2 = result[i].IndexOf(end1, pos1+8);
                         string target = result[i].Substring(pos1, pos2 - pos1 + pos4);
                         int pos3 = target.IndexOf(end2);
                         string insert = target.Substring(0, pos3 + 1);
-                        Console.WriteLine($"Позиция: {pos1}");
-                        Console.WriteLine($"Что заменяем: {target}");
-                        Console.WriteLine($"Основа поиска: {insert}");
+                        _logger.Info($"Позиция: {pos1}");
+                        _logger.Info($"Что заменяем: {target}");
+                        _logger.Info($"Основа поиска: {insert}");
                         start_pos = pos2 + 1;
                         foreach (IView view in views)
                         {
-                            // Console.WriteLine($"__{view.Name}__");
-                            // Console.WriteLine($"Число объектов вида: {view.ObjectCount}");
+                            _logger.Info($"__{view.Name}__");
+                            _logger.Info($"Число объектов вида: {view.ObjectCount}");
                             ISymbols2DContainer drawingContainer = (ISymbols2DContainer)view;
                             var leaders = drawingContainer.Leaders;
                             foreach (IBaseLeader leader in leaders)
                             {
-                                // Console.WriteLine(leader.Type);
+                                _logger.Info($"leader.Type: {leader.Type}");
                                 switch (leader.Type)
                                 {
                                     case KompasAPIObjectTypeEnum.ksObjectMarkLeader:
@@ -300,7 +332,7 @@ public partial class Drawing : UserControl
 
                                         if (((IMarkLeader)leader).Designation.Str.Contains(insert))
                                         {
-                                            Console.WriteLine(((IMarkLeader)leader).Designation.Str);
+                                            _logger.Info($"((IMarkLeader)leader).Designation.Str: {((IMarkLeader)leader).Designation.Str}");
                                             result[i] = result[i].Replace(target,
                                                 ((IMarkLeader)leader).Designation.Str);
                                         }
@@ -311,7 +343,7 @@ public partial class Drawing : UserControl
                                     {
                                         if (((ILeader)leader).TextOnShelf.Str.Contains(insert))
                                         {
-                                            // Console.WriteLine(((ILeader)leader).TextOnShelf.Str);
+                                            _logger.Info($"((ILeader)leader).TextOnShelf.Str: {((ILeader)leader).TextOnShelf.Str}");
                                             result[i] = result[i].Replace(target,
                                                     ((ILeader)leader).TextOnShelf.Str);
                                         }
@@ -322,7 +354,7 @@ public partial class Drawing : UserControl
                                     {
                                         if (((IPositionLeader)leader).Positions.Str.Contains(insert))
                                         {
-                                            // Console.WriteLine(((IPositionLeader)leader).Positions.Str);
+                                            _logger.Info($"((IPositionLeader)leader).Positions.Str: {((IPositionLeader)leader).Positions.Str}");
                                             result[i] = result[i].Replace(target, ((IPositionLeader)leader).Positions.Str);
                                         }
 
@@ -345,7 +377,7 @@ public partial class Drawing : UserControl
                     
                     
                 }
-                Console.WriteLine(tt);
+                _logger?.Info(tt);
                 technicalDemand.Text.Str = tt;
                 technicalDemand.Update();
             }
@@ -376,7 +408,7 @@ public partial class Drawing : UserControl
         //     for (int i = 0; i < props.Count; i++)
         //     {
         //         propertyKeeper.GetPropertyValue(props[i], out object value, true, out var source );
-        //         Console.WriteLine($"{source}: {value}");
+        //         _logger.Info($"{source}: {value}");
         //     }
         //     //И самое важное
         //     propertyKeeper.SetPropertyValue(props[0], "VL.39А-SP1.80002878.00.20$|$|$|$|$| $|СБ", false);
@@ -386,11 +418,11 @@ public partial class Drawing : UserControl
         //     // XElement? element = doc
         //     //     .Descendants("property")
         //     //     .FirstOrDefault(x => (string?)x.Attribute("id") == "documentNumber");
-        //     // Console.WriteLine(element.Attribute("value").Value);
+        //     // _logger.Info(element.Attribute("value").Value);
         //     // element.SetAttributeValue("value", "ГЧ");
         //     // properties = doc.ToString();
         //
-        //     // Console.WriteLine(propertyMng);
+        //     // _logger.Info(propertyMng);
         //
         //
         //
@@ -399,7 +431,7 @@ public partial class Drawing : UserControl
         //     // {
         //     //     if (stamp.Text[i].Str != "")
         //     //     {
-        //     //         Console.WriteLine($"{i}:{stamp.Text[i].Str}");
+        //     //         _logger.Info($"{i}:{stamp.Text[i].Str}");
         //     //     }
         //     //     
         //     // }
@@ -420,13 +452,12 @@ public partial class Drawing : UserControl
         Stopwatch sw = new Stopwatch();
         sw.Start();
         ButtonRun.IsEnabled = false;
+        
         var addStamp = AddStampCustom.IsChecked == true;
         var needSign = SignStamp.IsChecked == true;
         var needPdf = SavedPdf.IsChecked == true;
         var autoPacedStamp = AutoPlaceStamp.IsChecked == true;
         var needClose = CloseDoc.IsChecked == true;
-        // var oldSaved = saveOldVersion.IsChecked == true;
-        // var oldVersionValue = ((ComboBoxItem)oldVersion.SelectedItem).Content.ToString();
         bool shouldFillTitle = addStamp
                                || ((name1.SelectedItem as ComboBoxItem)?.Content?.ToString()?.Length > 0
                                    || (name2.SelectedItem as ComboBoxItem)?.Content?.ToString()?.Length > 0
@@ -501,7 +532,7 @@ public partial class Drawing : UserControl
         }
 
         sw.Stop();
-        Console.WriteLine($"Time: {sw.ElapsedMilliseconds} ms");
+        _logger?.Info($"Time: {sw.ElapsedMilliseconds} ms");
         }
         catch (Exception ex)
         {
@@ -546,7 +577,7 @@ public partial class Drawing : UserControl
                 var signPath = Path.Combine(AppContext.BaseDirectory, "Assets", "sign", text.Str + ".png");
                 using var img = XImage.FromFile(signPath);
                 double height = img.PixelHeight * width / img.PixelWidth;
-                // Console.WriteLine($"{text.Str}: {img.PixelWidth}x{img.PixelHeight} -> {width}x{height}");
+                _logger?.Info($"{text.Str}: {img.PixelWidth}x{img.PixelHeight} -> {width}x{height}");
                 gfx.DrawImage(img, x - (width / 2), y[i] - (height / 2), width, height);
 
             }
@@ -605,11 +636,16 @@ public partial class Drawing : UserControl
         view.Layers.Layer[0].Color = 255;
         view.Layers.Layer[0].Update();
         var drawContainer = (IDrawingContainer)view;
-        if (view.ObjectCount > 0)
+        if (view.ObjectCount !=0)
         {
             // Если ранее что-то вставляли — удаляем первый объект (избегаем дублирования)
             dynamic obj = drawContainer.Objects[0];
-            obj[0].Delete();
+            for (int i = 0; i < view.ObjectCount; i++)
+            {
+                obj[i].Delete();
+            }
+            // obj[0].Delete();
+            
         }
 
         var insManager = (IInsertionsManager)kompasDocument2D;
@@ -626,20 +662,14 @@ public partial class Drawing : UserControl
         var insDefinition = insManager.AddDefinition(0, "Штамп", frwPath);
         var insObj = drawContainer.InsertionObjects;
         var ins = insObj.Add(insDefinition);
-        // Console.WriteLine(technicalDemand.IsCreated);
+        _logger.Info($"technicalDemand.IsCreated: {technicalDemand.IsCreated}");
         // Флаги работы алгоритма
         bool movedTt = false;
         bool freePlace = false;
         // Предопределённые смещения центра и ширина для разных видов штампа
-        double xCenter = _target switch
-        {
-            TargetNum.VOL => 250, TargetNum.SHU => 238, TargetNum.QAR => 252, _ => throw new NotImplementedException()
-        };
-        double size = _target switch
-        {
-            TargetNum.VOL => 116, TargetNum.SHU => 95, TargetNum.QAR => 118, _ => throw new NotImplementedException()
-        };
-        // Console.WriteLine(technicalDemand.IsCreated);
+        if (!_stampParams.TryGetValue(_target, out var p)) p = _stampParams["SHU"];
+        double xCenter = p.xCenter;
+        double size = p.size;
         if (autoPacedStamp)
         {
             // Автоматическое размещение штампа
@@ -651,14 +681,14 @@ public partial class Drawing : UserControl
                     double[] technicalPos = (double[])technicalDemand.BlocksGabarits;
                     // for (int i = 0; i < technicalPos.Length; i++)
                     // {
-                    // Console.WriteLine(i + ":" + technicalPos[i]);
+                    // _logger.Info(i + ":" + technicalPos[i]);
                     // }
 
                     if (technicalPos[0] >= x - 190 && technicalPos[1] >= 71 &&
                         technicalPos[1] <= 96) // проверяю если тт над рамкой и двигаю
                     {
                         // Сценарий: TechnicalDemand прямо над рамкой — нужно подвинуть его выше, если есть место
-                        // Console.WriteLine("Orientir top");
+                        // _logger.Info("Orientir top");
                         for (int i = 0; i < 10; i++) // проверяю верхнюю границу для тт
                         {
                             if (technicalPos[1] <= 85)
@@ -671,7 +701,7 @@ public partial class Drawing : UserControl
                             freePlace = Check_pos(technicalPos[0] + 18 * i,
                                 technicalPos[1] + technicalDemand.Text.Count * 7 + 2, document2D1);
 
-                            // Console.WriteLine(i + ":" + free_place + "|" + (technicalPos[0] + 18 * i) + ":" +
+                            // _logger.Info(i + ":" + free_place + "|" + (technicalPos[0] + 18 * i) + ":" +
                             //                   (technicalPos[1] + technicalDemand.Text.Count * 7 + 2));
                             if (!freePlace)
                             {
@@ -684,7 +714,7 @@ public partial class Drawing : UserControl
                         if (!movedTt)
                         {
                             // Есть место чтобы поднять TechnicalDemand — сдвигаем его вверх и ставим штамп сверху
-                            // Console.WriteLine("Move");
+                            // _logger.Info("Move");
                             technicalDemand.BlocksGabarits = new double[4]
                             {
                                 technicalPos[0], technicalPos[1] + 12, technicalPos[2],
@@ -708,20 +738,20 @@ public partial class Drawing : UserControl
                                 return;
                             }
 
-                            // Console.WriteLine("Top in collision, dont move, checked left");
+                            // _logger.Info("Top in collision, dont move, checked left");
                             for (int i = 0; i < 10; i++)
                             {
                                 // Проверяем сектор слева от рамки (Y=17)
                                 freePlace = Check_pos(x - 190 - size + (size / 10) * i, 17, document2D1);
-                                // Console.WriteLine(free_place + ":" + (x - 190 - size + size / 10));
+                                // _logger.Info(free_place + ":" + (x - 190 - size + size / 10));
                                 if (!freePlace) break;
                             }
 
-                            // Console.WriteLine("TT enable, left pos, dont move" + free_place);
+                            // _logger.Info("TT enable, left pos, dont move" + free_place);
                             if (freePlace)
                             {
                                 // Есть место слева — ставим штамп
-                                // Console.WriteLine("Left stamp");
+                                // _logger.Info("Left stamp");
                                 ins.SetPlacement(x - xCenter, 16, 0, false);
                                 ins.Update();
                             }
@@ -741,15 +771,15 @@ public partial class Drawing : UserControl
                         {
                             // Проверяем верхнюю позицию под штамп (Y=82)
                             freePlace = Check_pos(x - 188 + (size / 10) * i, 82, document2D1);
-                            // Console.WriteLine(free_place + ":" + (x - 188 + size / 10));
+                            // _logger.Info(free_place + ":" + (x - 188 + size / 10));
                             if (!freePlace) break;
                         }
 
-                        // Console.WriteLine("TT unknow pos, top pos" + free_place);
+                        // _logger.Info("TT unknow pos, top pos" + free_place);
                         if (freePlace)
                         {
                             // Верх свободен — ставим штамп
-                            // Console.WriteLine("Free stamp top. TT xz");
+                            // _logger.Info("Free stamp top. TT xz");
                             ins.SetPlacement(x - 188 + size / 2, 82, 0, false);
                             ins.Update();
                         }
@@ -787,7 +817,7 @@ public partial class Drawing : UserControl
                                             technicalDemand.Update();
                                             technicalPos[1] =
                                                 desiredY; // обновляем локально чтобы последующая логика видела новое положение
-                                            // Console.WriteLine("Left area: TT moved up to free stamp zone");
+                                            // _logger.Info("Left area: TT moved up to free stamp zone");
                                         }
                                         else
                                         {
@@ -800,7 +830,7 @@ public partial class Drawing : UserControl
                                 }
                                 catch (Exception ex)
                                 {
-                                    // Console.WriteLine("Error moving TT for left placement: " + ex.Message);
+                                    // _logger.Info("Error moving TT for left placement: " + ex.Message);
                                     _badDocument = true;
                                     _badCount++;
                                     return;
@@ -819,13 +849,13 @@ public partial class Drawing : UserControl
                             for (int i = 0; i < 10; i++)
                             {
                                 freePlace = Check_pos(x - 190 - size + (size / 10) * i, 17, document2D1);
-                                // Console.WriteLine(free_place + ":" + (x - 190 - size + size / 10));
+                                // _logger.Info(free_place + ":" + (x - 190 - size + size / 10));
                                 if (!freePlace) break;
                             }
 
                             if (freePlace)
                             {
-                                // Console.WriteLine("Left stamp");
+                                // _logger.Info("Left stamp");
                                 ins.SetPlacement(x - xCenter, 16, 0, false);
                                 ins.Update();
                             }
@@ -849,15 +879,15 @@ public partial class Drawing : UserControl
                 for (int i = 0; i < 10; i++)
                 {
                     freePlace = Check_pos(x - 188 + (size / 10) * i, 82, document2D1);
-                    // Console.WriteLine(free_place + ":" + (x - 190 + size / 10));
+                    // _logger.Info(free_place + ":" + (x - 190 + size / 10));
                     if (!freePlace) break;
                 }
 
-                // Console.WriteLine("TT not in doc, top pos" + free_place);
+                // _logger.Info("TT not in doc, top pos" + free_place);
                 if (freePlace) // над рамкой
                 {
                     // Верх свободен — ставим штамп
-                    // Console.WriteLine("Free stamp top. TT xz");
+                    // _logger.Info("Free stamp top. TT xz");
                     ins.SetPlacement(x - 188 + size / 2, 82, 0, false);
                     ins.Update();
                 }
@@ -875,15 +905,15 @@ public partial class Drawing : UserControl
                     for (int i = 0; i < 10; i++)
                     {
                         freePlace = Check_pos(x - 190 - size + (size / 10) * i, 17, document2D1);
-                        // Console.WriteLine(free_place + ":" + (x - 190 - size + size / 10));
+                        // _logger.Info(free_place + ":" + (x - 190 - size + size / 10));
                         if (!freePlace) break;
                     }
 
-                    // Console.WriteLine("TT not in doc, left pos" + free_place);
+                    // _logger.Info("TT not in doc, left pos" + free_place);
                     if (freePlace)
                     {
                         // Лево свободно — ставим штамп
-                        // Console.WriteLine("Left stamp");
+                        // _logger.Info("Left stamp");
                         ins.SetPlacement(x - xCenter, 16, 0, false);
                         ins.Update();
                     }
@@ -924,7 +954,7 @@ public partial class Drawing : UserControl
             }
 
             layotSheets.Update();
-            // Console.WriteLine("Stamp");
+            // _logger.Info("Stamp");
             if (caseText[0] != null || caseText[1] != null || caseText[2] != null)
             {
                 for (int i = 0; i < 3; i++)
@@ -943,7 +973,7 @@ public partial class Drawing : UserControl
             {
                 var text = layotSheets.Stamp.Text[9];
                 text.Clear();
-                if (_stamps.TryGetValue(_target.ToString(), out var lines))
+                if (_stamps.TryGetValue(_target, out var lines))
                 {
                     foreach (var line in lines)
                     {
@@ -1039,4 +1069,7 @@ public partial class Drawing : UserControl
         }
         
     }
+
+
+
 }

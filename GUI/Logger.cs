@@ -9,7 +9,9 @@ public class Logger
 
     public Logger(string logFilePath)
     {
-        _logFilePath = logFilePath;
+        string localFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "KompasTweaker");
+        _logFilePath = Path.Combine(localFolder, logFilePath);
     }
 
     public void Log(string message, string level = "INFO")
