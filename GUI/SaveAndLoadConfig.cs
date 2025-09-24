@@ -11,11 +11,15 @@ public interface SaveAndLoadConfig
         ConfigSettings? config;
         try
         {   
-            if (load) return;
             string localFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "KompasTweaker");
             Directory.CreateDirectory(localFolder);
             string settingsPath = Path.Combine(localFolder, "settings.json");
+            string defaultConfigPath = Path.Combine(AppContext.BaseDirectory, "Assets", "settings.json");
+            if (!File.Exists(settingsPath) && File.Exists(defaultConfigPath))
+            {
+                File.Copy(defaultConfigPath, settingsPath);
+            }
             if (File.Exists(settingsPath))
             {
                 var oldConfig = File.ReadAllText(settingsPath);
@@ -26,15 +30,16 @@ public interface SaveAndLoadConfig
                 config = new ConfigSettings();
             }
             
-            config.saveAllStatus = Utility.saveAllStatus;
-            config.saveOldVersionStatus = Utility.saveOldVersionStatus;
-            config.addStampCustomStatus = Drawing.AddStampCustomStatus;
-            config.signStampStatus = Drawing.SignStampStatus;
-            config.savedPdfStatus = Drawing.SavedPdfStatus;
-            config.autoPlaceStampStatus = Drawing.AutoPlaceStampStatus;
-            config.closeDocStatus = Drawing.CloseDocStatus;
-            config.target = Drawing.Target;
-            config.tabActive = MainWindow.tabActive;
+            config.SaveAllStatus = Utility.saveAllStatus;
+            config.SaveOldVersionStatus = Utility.saveOldVersionStatus;
+            config.AddStampCustomStatus = Drawing.AddStampCustomStatus;
+            config.SignStampStatus = Drawing.SignStampStatus;
+            config.SavedPdfStatus = Drawing.SavedPdfStatus;
+            config.AutoPlaceStampStatus = Drawing.AutoPlaceStampStatus;
+            config.CloseDocStatus = Drawing.CloseDocStatus;
+            config.SilentCheckBoxStatus = Drawing.SilentCheckBoxStatus;
+            config.Target = Drawing.Target;
+            config.TabActive = MainWindow.tabActive;
             
             var newConfig = JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(settingsPath, newConfig);
@@ -65,20 +70,22 @@ public interface SaveAndLoadConfig
                 Drawing.SavedPdfStatus = false;
                 Drawing.AutoPlaceStampStatus = false;
                 Drawing.CloseDocStatus = false;
+                Drawing.SilentCheckBoxStatus = false;
                 Drawing.Target = "SHU";
                 return;
             }
             string json = File.ReadAllText(settingsPath);
             var config = JsonSerializer.Deserialize<ConfigSettings>(json);
-            MainWindow.tabActive = config?.tabActive ?? 0;
-            Utility.saveAllStatus = config?.saveAllStatus ?? false;
-            Utility.saveOldVersionStatus = config?.saveOldVersionStatus ?? false;
-            Drawing.AddStampCustomStatus = config?.addStampCustomStatus ?? false;
-            Drawing.SignStampStatus = config?.signStampStatus ?? false;
-            Drawing.SavedPdfStatus = config?.savedPdfStatus ?? false;
-            Drawing.AutoPlaceStampStatus = config?.autoPlaceStampStatus ?? false;
-            Drawing.CloseDocStatus = config?.closeDocStatus ?? false;
-            Drawing.Target = config?.target ?? "SHU";
+            MainWindow.tabActive = config?.TabActive ?? 0;
+            Utility.saveAllStatus = config?.SaveAllStatus ?? false;
+            Utility.saveOldVersionStatus = config?.SaveOldVersionStatus ?? false;
+            Drawing.AddStampCustomStatus = config?.AddStampCustomStatus ?? false;
+            Drawing.SignStampStatus = config?.SignStampStatus ?? false;
+            Drawing.SavedPdfStatus = config?.SavedPdfStatus ?? false;
+            Drawing.AutoPlaceStampStatus = config?.AutoPlaceStampStatus ?? false;
+            Drawing.CloseDocStatus = config?.CloseDocStatus ?? false;
+            Drawing.SilentCheckBoxStatus = config?.SilentCheckBoxStatus ?? false;
+            Drawing.Target = config?.Target ?? "SHU";
             load = false;
         }
         catch (Exception e)
@@ -89,15 +96,16 @@ public interface SaveAndLoadConfig
     }
     private class ConfigSettings
     {
-        public bool? addStampCustomStatus { get; set; }
-        public bool? signStampStatus { get; set; }
-        public bool? savedPdfStatus { get; set; }
-        public bool? autoPlaceStampStatus { get; set; }
-        public bool? closeDocStatus { get; set; }
-        public string? target { get; set; }
-        public bool? saveAllStatus { get; set; }
-        public bool? saveOldVersionStatus { get; set; }
-        public int tabActive { get; set; }
+        public bool? AddStampCustomStatus { get; set; }
+        public bool? SignStampStatus { get; set; }
+        public bool? SavedPdfStatus { get; set; }
+        public bool? AutoPlaceStampStatus { get; set; }
+        public bool? CloseDocStatus { get; set; }
+        public string? Target { get; set; }
+        public bool? SaveAllStatus { get; set; }
+        public bool? SilentCheckBoxStatus { get; set; }
+        public bool? SaveOldVersionStatus { get; set; }
+        public int TabActive { get; set; }
         
     }
 }

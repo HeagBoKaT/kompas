@@ -32,6 +32,7 @@ public partial class Drawing : UserControl
     private Dictionary<string, List<string>> _stamps = new();
     private bool _badDocument = false;
     private int _badCount = 0;
+    Logger _logger;
     public static bool AddStampCustomStatus = false;
     public static bool SignStampStatus = false;
     public static bool SavedPdfStatus = false;
@@ -43,6 +44,7 @@ public partial class Drawing : UserControl
     public Drawing()
     {
         InitializeComponent();
+        _logger = new Logger("app.log");
         LoadNames();
         LoadState();
     }
@@ -58,7 +60,7 @@ public partial class Drawing : UserControl
             SavedPdf.IsChecked = SavedPdfStatus;
             AutoPlaceStamp.IsChecked = AutoPlaceStampStatus;
             CloseDoc.IsChecked = CloseDocStatus;
-            
+            SilentCheckBox.IsChecked = SilentCheckBoxStatus;
             if (!Enum.TryParse(Target, out _target)) _target = TargetNum.SHU;
             RbVol.IsChecked = _target == TargetNum.VOL;
             RbShu.IsChecked = _target == TargetNum.SHU;
@@ -66,7 +68,7 @@ public partial class Drawing : UserControl
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
+            _logger.Error(ex.Message);
         }
         finally
         {
@@ -83,20 +85,22 @@ public partial class Drawing : UserControl
             SavedPdfStatus = SavedPdf.IsChecked == true;
             AutoPlaceStampStatus = AutoPlaceStamp.IsChecked == true;
             CloseDocStatus = CloseDoc.IsChecked == true;
+            SilentCheckBoxStatus = SilentCheckBox.IsChecked == true;
             Target = _target.ToString();
             SaveAndLoadConfig.SaveSettingConfig();
             
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
+            _logger?.Error(ex.Message);
         }
     }
 
     private void LoadNames()
     {
         try
-        {
+        {  
+            _logger?.Info("Загрузка имен");
             string localFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "KompasTweaker");
             Directory.CreateDirectory(localFolder);
@@ -126,10 +130,11 @@ public partial class Drawing : UserControl
             {
                 _stamps = config.stampText;
             }
+            _logger.Info("Имена загружены");
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            _logger?.Error(ex.Message);
         }
     }
 
@@ -167,23 +172,32 @@ public partial class Drawing : UserControl
         public Dictionary<string, List<string>>? stampText { get; set; }
     }
 
-    static bool Check_pos(double x, double y, IKompasDocument2D1 document2D1)
+    bool Check_pos(double x, double y, IKompasDocument2D1 document2D1)
     {
-        var collision = document2D1.FindObject(x, y, 10, null);
-        if (collision != null)
+        try
         {
-            return false;
+            var collision = document2D1.FindObject(x, y, 10, null);
+            if (collision != null)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
-        else
+        catch (Exception ex)
         {
-            return true;
+            _logger.Error(ex.Message);
+            return false;
         }
     }
 
     private void Test_button_click(object? sender, RoutedEventArgs e)
     {
         try
-        {
+        {   
+            _logger?.Info("Старт работы исправления ТТ");
             IApplication app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
             app.GetSystemVersion(out int major, out int minor, out int patch, out int revision );
             Console.WriteLine(major + "." + minor + "." + patch + "." + revision);
@@ -191,16 +205,16 @@ public partial class Drawing : UserControl
             settings.EnablesAddSystemDelimersInMarking = true; // отображение разделителей и спец символов
             settings.EnableAddFilesToRecentList = true;
             IKompasDocument document = app.ActiveDocument;
-            if (document != null)
+            try
             {
+                if (document != null)
+                {
                 int start_pos = 0;
                 IKompasDocument2D kompasDocument2D = (IKompasDocument2D)document;
                 IDrawingDocument drawingDocument = (IDrawingDocument)kompasDocument2D;
                 ITechnicalDemand technicalDemand = drawingDocument.TechnicalDemand;
                 Console.WriteLine(technicalDemand.Text.Str);
-                
                 IViews views = kompasDocument2D.ViewsAndLayersManager.Views;
-                // int t = 1;
                 string current = "";
                 int pos1 = 0;
                 var result = new List<string>();
@@ -335,10 +349,18 @@ public partial class Drawing : UserControl
                 technicalDemand.Text.Str = tt;
                 technicalDemand.Update();
             }
+            
+            }
+            catch (Exception ex)
+            {
+                _logger?.Error(ex.Message);
+                throw;
+            }
+            
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
+            _logger?.Error(ex.Message);
             throw;
         }
 
@@ -392,6 +414,9 @@ public partial class Drawing : UserControl
 
     private void Button_Click(object? sender, RoutedEventArgs e)
     {
+        try
+        { 
+            _logger?.Info("Начало работы с чертежом");
         Stopwatch sw = new Stopwatch();
         sw.Start();
         ButtonRun.IsEnabled = false;
@@ -433,7 +458,6 @@ public partial class Drawing : UserControl
                     kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentAssembly ||
                     kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentFragment)
                 {
-                    DocCloseAndSave(kompasDocument);
                     continue;
                 }
 
@@ -462,8 +486,12 @@ public partial class Drawing : UserControl
                 {
                     DocCloseAndSave(kompasDocument);
                 }
-                
+
             }
+        }
+        catch (Exception ex)
+        {
+            _logger?.Error(ex.Message);
         }
         finally
         {
@@ -474,6 +502,13 @@ public partial class Drawing : UserControl
 
         sw.Stop();
         Console.WriteLine($"Time: {sw.ElapsedMilliseconds} ms");
+        }
+        catch (Exception ex)
+        {
+            _logger?.Error(ex.Message);
+            throw;
+        }
+        
     }
 
     private void DocCloseAndSave(IKompasDocument kompasDocument)
@@ -484,39 +519,50 @@ public partial class Drawing : UserControl
 
     private void SavePDF_spec(IKompasDocument kompasDocument)
     {
-        string outDir = Path.Combine(kompasDocument.Path, "Чертежи в pdf");
-        Directory.CreateDirectory(outDir);
-        var localPath = kompasDocument.Path + "\\Чертежи в pdf\\" +
-                        Path.GetFileNameWithoutExtension(kompasDocument.Name) + ".pdf";
-        IKompasDocument1 kompasDocument1 = (IKompasDocument1)kompasDocument;
-        kompasDocument1.SaveAsEx(localPath, 0);
-        var format = kompasDocument.LayoutSheets[0];
-        var stamp = format.Stamp;
-        var doc = PdfReader.Open(localPath, PdfDocumentOpenMode.Modify);
-        var page = doc.Pages[0];
-        using var gfx = XGraphics.FromPdfPage(page);
-        double x = 190; // pt, от верхнего левого угла
-        double[] y = { 768, 780, 810 }; // pt, вниз
-        double width = 44; // pt
-        for (int i = 0; i < 3; i++)
+        try
         {
-            var text = stamp.Text[id_stamp[i]];
-            if (text.Str == "")
+            _logger?.Info("Начало сохранения спецификации в PDF");
+            string outDir = Path.Combine(kompasDocument.Path, "Чертежи в pdf");
+            Directory.CreateDirectory(outDir);
+            var localPath = kompasDocument.Path + "\\Чертежи в pdf\\" +
+                            Path.GetFileNameWithoutExtension(kompasDocument.Name) + ".pdf";
+            IKompasDocument1 kompasDocument1 = (IKompasDocument1)kompasDocument;
+            kompasDocument1.SaveAsEx(localPath, 0);
+            var format = kompasDocument.LayoutSheets[0];
+            var stamp = format.Stamp;
+            var doc = PdfReader.Open(localPath, PdfDocumentOpenMode.Modify);
+            var page = doc.Pages[0];
+            using var gfx = XGraphics.FromPdfPage(page);
+            double x = 190; // pt, от верхнего левого угла
+            double[] y = { 768, 780, 810 }; // pt, вниз
+            double width = 44; // pt
+            for (int i = 0; i < 3; i++)
             {
-                continue;
+                var text = stamp.Text[id_stamp[i]];
+                if (text.Str == "")
+                {
+                    continue;
+                }
+                var signPath = Path.Combine(AppContext.BaseDirectory, "Assets", "sign", text.Str + ".png");
+                using var img = XImage.FromFile(signPath);
+                double height = img.PixelHeight * width / img.PixelWidth;
+                // Console.WriteLine($"{text.Str}: {img.PixelWidth}x{img.PixelHeight} -> {width}x{height}");
+                gfx.DrawImage(img, x - (width / 2), y[i] - (height / 2), width, height);
+
             }
-            var signPath = Path.Combine(AppContext.BaseDirectory, "Assets", "sign", text.Str + ".png");
-            using var img = XImage.FromFile(signPath);
-            double height = img.PixelHeight * width / img.PixelWidth;
-            // Console.WriteLine($"{text.Str}: {img.PixelWidth}x{img.PixelHeight} -> {width}x{height}");
-            gfx.DrawImage(img, x - (width / 2), y[i] - (height / 2), width, height);
 
+            doc.Save(localPath);
+            _logger?.Info("Успешное сохранение спецификации");
         }
-
-        doc.Save(localPath);
+        catch (Exception ex)
+        {
+            _logger?.Error(ex.Message);
+            throw;
+        }
+        
     }
 
-    void Set_holc_stamp(IKompasDocument kompasDocument, bool auto_paced_stamp)
+    void Set_holc_stamp(IKompasDocument kompasDocument, bool autoPacedStamp)
     {
         // Установка дополнительного штампа (фрейма) на чертёж.
         // Логика:
@@ -538,10 +584,14 @@ public partial class Drawing : UserControl
         if (kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentSpecification)
         {
             // Для спецификаций штамп не ставим
+            _logger.Info("Попытка вставки штампа в спецификацию");
             return;
         }
 
-        IKompasDocument2D kompasDocument2D = (IKompasDocument2D)kompasDocument;
+        try
+        {   
+            _logger.Info("Начало вставки штампа");
+            IKompasDocument2D kompasDocument2D = (IKompasDocument2D)kompasDocument;
         Views views = kompasDocument2D.ViewsAndLayersManager.Views;
         // Получаем существующий View "Штамп" либо создаём новый (тип 1 — обычный вид)
         var view = views.View["Штамп"] ?? views.Add((LtViewType)1);
@@ -570,10 +620,8 @@ public partial class Drawing : UserControl
         IText textTechnical = technicalDemand.Text;
         IKompasDocument2D1 document2D1 = (IKompasDocument2D1)kompasDocument2D;
         var format = kompasDocument2D.LayoutSheets[0].Format;
-
-
         // Путь к нужному фрейму согласно выбранной цели (VOL/SHU/QAR)
-        var frwPath = Path.Combine(AppContext.BaseDirectory, "Assets", "frame", _target.ToString() + ".frw");
+        var frwPath = Path.Combine(AppContext.BaseDirectory, "Assets", "frame", _target + ".frw");
         // Создаём определение и сам объект вставки
         var insDefinition = insManager.AddDefinition(0, "Штамп", frwPath);
         var insObj = drawContainer.InsertionObjects;
@@ -592,7 +640,7 @@ public partial class Drawing : UserControl
             TargetNum.VOL => 116, TargetNum.SHU => 95, TargetNum.QAR => 118, _ => throw new NotImplementedException()
         };
         // Console.WriteLine(technicalDemand.IsCreated);
-        if (auto_paced_stamp)
+        if (autoPacedStamp)
         {
             // Автоматическое размещение штампа
             if (technicalDemand.IsCreated)
@@ -792,7 +840,7 @@ public partial class Drawing : UserControl
                 catch (Exception ex)
                 {
                     // Любая ошибка логики — просто логируем
-                    Console.WriteLine(ex);
+                    _logger.Error(ex.Message);
                 }
             }
             else // если тт нет то проверяю просто
@@ -854,107 +902,141 @@ public partial class Drawing : UserControl
             ins.SetPlacement(x - 190 + size / 2, 82, 0, false);
             ins.Update();
         }
+        }
+        catch (Exception e)
+        {
+            _logger?.Error(e.Message);
+            throw;
+        }
+        
     }
 
     public void Set_text_stamp(IApplication app, IKompasDocument kompasDocument, string[] caseText)
     {
-        var layotSheets = kompasDocument.LayoutSheets[0];
-        if (layotSheets.LayoutStyleNumber == 16 &&
-            kompasDocument.DocumentType != DocumentTypeEnum.ksDocumentSpecification)
+        try
         {
-            layotSheets.LayoutStyleNumber = 16;
-        }
-
-        layotSheets.Update();
-        // Console.WriteLine("Stamp");
-        if (caseText[0] != null || caseText[1] != null || caseText[2] != null)
-        {
-            for (int i = 0; i < 3; i++)
+            _logger?.Info("Начало заполнения штампа");
+            var layotSheets = kompasDocument.LayoutSheets[0];
+            if (layotSheets.LayoutStyleNumber == 16 &&
+                kompasDocument.DocumentType != DocumentTypeEnum.ksDocumentSpecification)
             {
-                if (caseText[i] == "") continue;
-                var text = layotSheets.Stamp.Text[id_stamp[i]];
-                text.Clear();
-                var textLine = text.Add();
-                textLine.Align = 0;
-                var textItem = textLine.Add();
-                textItem.Str = caseText[i];
+                layotSheets.LayoutStyleNumber = 16;
             }
-        }
 
-        if (AddStampCustom.IsChecked == true)
-        {
-            var text = layotSheets.Stamp.Text[9];
-            text.Clear();
-            if (_stamps.TryGetValue(_target.ToString(), out var lines))
+            layotSheets.Update();
+            // Console.WriteLine("Stamp");
+            if (caseText[0] != null || caseText[1] != null || caseText[2] != null)
             {
-                foreach (var line in lines)
+                for (int i = 0; i < 3; i++)
                 {
+                    if (caseText[i] == "") continue;
+                    var text = layotSheets.Stamp.Text[id_stamp[i]];
+                    text.Clear();
                     var textLine = text.Add();
-                    textLine.Str = line;
+                    textLine.Align = 0;
+                    var textItem = textLine.Add();
+                    textItem.Str = caseText[i];
                 }
             }
-        }
 
-        layotSheets.Stamp.Update();
+            if (AddStampCustom.IsChecked == true)
+            {
+                var text = layotSheets.Stamp.Text[9];
+                text.Clear();
+                if (_stamps.TryGetValue(_target.ToString(), out var lines))
+                {
+                    foreach (var line in lines)
+                    {
+                        var textLine = text.Add();
+                        textLine.Str = line;
+                    }
+                }
+            }
+
+            layotSheets.Stamp.Update();
+        }
+        catch (Exception e)
+        {
+            _logger?.Error(e.Message);
+        }
+        
     }
 
     public void Set_sign(IApplication app, IKompasDocument kompasDocument)
     {
-        if (kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentSpecification)
+        try
         {
-            SavePDF_spec(kompasDocument);
-            return;
-        }
-
-        IKompasDocument2D kompasDocument2D = (IKompasDocument2D)kompasDocument;
-        int[] y = { 29, 24, 9 };
-        var viewManager = kompasDocument2D.ViewsAndLayersManager;
-        var views = viewManager.Views;
-        var view = views.Add((LtViewType)1);
-        view.X = 0;
-        view.Y = 0;
-        view.Name = "Подписи";
-        view.Current = true;
-        view.Update();
-        for (int i = 0; i < 3; i++)
-        {
-            var format = kompasDocument2D.LayoutSheets[0];
-            var text = format.Stamp.Text[id_stamp[i]];
-            if (text.Str != "")
+            _logger?.Info("Начало подписания для PDF");
+            if (kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentSpecification)
             {
-                var path = AppContext.BaseDirectory + "Assets\\sign\\" + text.Str + ".png";
-                view = views.View["Подписи"];
-                var imgViewCont = (IDrawingContainer)view;
-                var imgView = imgViewCont.Rasters;
-                var imgViewAdd = imgView.Add();
-                imgViewAdd.SetPlacement(format.Format.FormatWidth - 150, y[i], 0, false);
-                imgViewAdd.FileName = path;
-                imgViewAdd.Scale = 0.045;
-                imgViewAdd.Update();
+                SavePDF_spec(kompasDocument);
+                return;
+            }
+
+            IKompasDocument2D kompasDocument2D = (IKompasDocument2D)kompasDocument;
+            int[] y = { 29, 24, 9 };
+            var viewManager = kompasDocument2D.ViewsAndLayersManager;
+            var views = viewManager.Views;
+            var view = views.Add((LtViewType)1);
+            view.X = 0;
+            view.Y = 0;
+            view.Name = "Подписи";
+            view.Current = true;
+            view.Update();
+            for (int i = 0; i < 3; i++)
+            {
+                var format = kompasDocument2D.LayoutSheets[0];
+                var text = format.Stamp.Text[id_stamp[i]];
+                if (text.Str != "")
+                {
+                    var path = AppContext.BaseDirectory + "Assets\\sign\\" + text.Str + ".png";
+                    view = views.View["Подписи"];
+                    var imgViewCont = (IDrawingContainer)view;
+                    var imgView = imgViewCont.Rasters;
+                    var imgViewAdd = imgView.Add();
+                    imgViewAdd.SetPlacement(format.Format.FormatWidth - 150, y[i], 0, false);
+                    imgViewAdd.FileName = path;
+                    imgViewAdd.Scale = 0.045;
+                    imgViewAdd.Update();
+                }
             }
         }
+        catch (Exception e)
+        {
+            _logger?.Error(e.Message);
+        }
+        
     }
 
     private void SavePdf(IKompasDocument kompasDocument)
     {
-        if (kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentSpecification)
+        try
         {
-            SavePDF_spec(kompasDocument);
-            return;
-        }
+            _logger?.Info("Начало сохранения PDF");
+            if (kompasDocument.DocumentType == DocumentTypeEnum.ksDocumentSpecification)
+            {
+                SavePDF_spec(kompasDocument);
+                return;
+            }
 
-        if (_badDocument == false)
+            if (_badDocument == false)
+            {
+                string outDir = Path.Combine(kompasDocument.Path, "Чертежи в pdf");
+                Directory.CreateDirectory(outDir);
+                var localPath = kompasDocument.Path + "\\Чертежи в pdf\\" +
+                                Path.GetFileNameWithoutExtension(kompasDocument.Name) + ".pdf";
+                kompasDocument.SaveAs(localPath);
+            }
+
+            IKompasDocument2D kompasDocument2D = (IKompasDocument2D)kompasDocument;
+            var views = kompasDocument2D.ViewsAndLayersManager.Views;
+            var signView = views.View["Подписи"];
+            signView?.Delete();
+        }
+        catch (Exception e)
         {
-            string outDir = Path.Combine(kompasDocument.Path, "Чертежи в pdf");
-            Directory.CreateDirectory(outDir);
-            var localPath = kompasDocument.Path + "\\Чертежи в pdf\\" +
-                             Path.GetFileNameWithoutExtension(kompasDocument.Name) + ".pdf";
-            kompasDocument.SaveAs(localPath);
+            _logger?.Error(e.Message);
         }
-
-        IKompasDocument2D kompasDocument2D = (IKompasDocument2D)kompasDocument;
-        var views = kompasDocument2D.ViewsAndLayersManager.Views;
-        var signView = views.View["Подписи"];
-        signView?.Delete();
+        
     }
 }

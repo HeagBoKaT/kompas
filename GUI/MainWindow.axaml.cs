@@ -26,52 +26,79 @@ public partial class MainWindow : Window
 {
     public static int tabActive;
     private bool saveTab = false;
+    private Logger _logger;
+    
     public MainWindow()
     {   
         InitializeComponent();
+        _logger = new Logger("app.log");
         LoadSettingConfig();
-        const string registryKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
-        const string valueName = "AppsUseLightTheme";
-        using (RegistryKey? key = Registry.CurrentUser.OpenSubKey(registryKeyPath))
+        try
         {
-            if (key != null)
+            const string registryKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
+            const string valueName = "AppsUseLightTheme";
+            using (RegistryKey? key = Registry.CurrentUser.OpenSubKey(registryKeyPath))
             {
-                object value = key.GetValue(valueName);
-                if (value != null && value is int intValue)
+                if (key != null)
                 {
-                    if (intValue == 1)
+                    object value = key.GetValue(valueName);
+                    if (value != null && value is int intValue)
                     {
-                        mainWindow.Foreground = new SolidColorBrush(Color.FromRgb(0, 0, 0));
-                        var brush = App.Current.Resources["BackgroundBrush"] as SolidColorBrush;
-                        brush.Color = Color.FromArgb(235, 229, 229, 229);
-                    }
+                        if (intValue == 1)
+                        {
+                            mainWindow.Foreground = new SolidColorBrush(Color.FromRgb(0, 0, 0));
+                            var brush = App.Current.Resources["BackgroundBrush"] as SolidColorBrush;
+                            brush.Color = Color.FromArgb(235, 229, 229, 229);
+                        }
 
-                    else
-                    {
-                        var brush = App.Current.Resources["BackgroundBrush"] as SolidColorBrush;
-                        brush.Color = Color.FromArgb(235, 72, 72, 72);
+                        else
+                        {
+                            var brush = App.Current.Resources["BackgroundBrush"] as SolidColorBrush;
+                            brush.Color = Color.FromArgb(235, 72, 72, 72);
+                        }
                     }
                 }
             }
         }
+        catch (Exception ex)
+        {
+            _logger.Error(ex.Message);
+        }
+        
         
     }
 
     private void LoadSettingConfig()
     {
-        SaveAndLoadConfig.LoadSettingConfig();
-        Console.WriteLine(tabActive);
-        Control.SelectedIndex = tabActive;
-        saveTab = true;
+        try
+        {
+            SaveAndLoadConfig.LoadSettingConfig();
+            Console.WriteLine(tabActive);
+            Control.SelectedIndex = tabActive;
+            saveTab = true;
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex.Message);
+        }
+        
     }
 
     private void TabControl_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        if (sender is TabControl tabControl && tabControl.SelectedItem is TabItem tabItem)
+        try
         {
-            tabActive = tabControl.SelectedIndex;
-            if (saveTab) SaveAndLoadConfig.SaveSettingConfig();
+            if (sender is TabControl tabControl && tabControl.SelectedItem is TabItem tabItem)
+            {
+                tabActive = tabControl.SelectedIndex;
+                if (saveTab) SaveAndLoadConfig.SaveSettingConfig();
+            }
         }
+        catch (Exception ex)
+        {
+            _logger.Error(ex.Message);
+        }
+       
         
     }
 }

@@ -17,10 +17,13 @@ public partial class Utility : UserControl
 {
     public static bool saveAllStatus = false;
     public static bool saveOldVersionStatus = false;
+    Logger logger;
     public Utility()
     {
         InitializeComponent();
+        logger = new Logger("app.log");
         Load();
+        
     }
 
     private void Load()
@@ -46,36 +49,51 @@ public partial class Utility : UserControl
 
     private void Button_OnClick(object? sender, RoutedEventArgs e)
     {
-        SaveAndLoadConfig.SaveSettingConfig();
-        var oldVersionValue = ((ComboBoxItem)oldVersion.SelectedItem).Content.ToString();
-        var saveAll = SaveAll.IsChecked == true;
-        var oldVersionActive = saveOldVersion.IsChecked == true;
-        IApplication app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
-        int total = app.Documents.Count;
-        Console.WriteLine(saveAll);
-        if (!oldVersionActive) return;
-        if (saveAll)
+        try
         {
-            for (int i = total - 1; i >= 0; i--)
+            logger.Info("Запуск пересохранения");
+            SaveAndLoadConfig.SaveSettingConfig();
+            var oldVersionValue = ((ComboBoxItem)oldVersion.SelectedItem).Content.ToString();
+            var saveAll = SaveAll.IsChecked == true;
+            var oldVersionActive = saveOldVersion.IsChecked == true;
+            IApplication app = (IApplication)HeagBoKaT.HeagBoKaT.GetActiveObject("KOMPAS.Application.7");
+            int total = app.Documents.Count;
+            Console.WriteLine(saveAll);
+            if (!oldVersionActive) return;
+            if (saveAll)
             {
-                IKompasDocument kompasDocument = app.Documents[i];
+                for (int i = total - 1; i >= 0; i--)
+                {
+                    IKompasDocument kompasDocument = app.Documents[i];
+                    SaveOldVersion(kompasDocument, oldVersionValue);
+                }
+            }
+            else
+            {
+                IKompasDocument kompasDocument = app.ActiveDocument;
                 SaveOldVersion(kompasDocument, oldVersionValue);
             }
         }
-        else
+        catch (Exception ex)
         {
-            IKompasDocument kompasDocument = app.ActiveDocument;
-            SaveOldVersion(kompasDocument, oldVersionValue);
+            logger.Error(ex.Message);
         }
-        
     }
 
     private void SaveOldVersion(IKompasDocument kompasDocument, string oldVersionValue)
     {
-        var path = Path.Combine(kompasDocument.Path, kompasDocument.Name);
-        var version = oldVersionValue switch { "21" => 27, "22" => 28, "23" => 29 };
-        ((IKompasDocument1)kompasDocument).SaveAsEx(path, version);
-        kompasDocument.Close(0);
+        try
+        {
+            var path = Path.Combine(kompasDocument.Path, kompasDocument.Name);
+            var version = oldVersionValue switch { "21" => 27, "22" => 28, "23" => 29 };
+            ((IKompasDocument1)kompasDocument).SaveAsEx(path, version);
+            kompasDocument.Close(0);
+        }
+        catch (Exception ex)
+        {
+            logger.Error(ex.Message);
+        }
+        
     }
 
     private void SaveAll_OnChecked(object? sender, RoutedEventArgs e)
